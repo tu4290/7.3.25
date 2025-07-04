@@ -5,29 +5,27 @@ from typing import Dict, Any, Union, List
 from pydantic import BaseModel, Field
 from datetime import datetime
 
+from pydantic import BaseModel, Field, ConfigDict
+
 class AnalysisContext(BaseModel):
     """Context data for HuiHui analysis requests."""
-    market_conditions: str = Field(default="normal", description="Current market conditions")
+    market_conditions: Optional[str] = Field(default=None, description="Current market conditions")
     recent_news: List[str] = Field(default_factory=list, description="Recent news items")
-    volatility_regime: str = Field(default="normal", description="Current volatility regime")
-    market_sentiment: str = Field(default="neutral", description="Market sentiment")
-    time_of_day: str = Field(default="market_hours", description="Time context")
-    custom_context: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom context fields")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
+    volatility_regime: Optional[str] = Field(default=None, description="Current volatility regime")
+    market_sentiment: Optional[str] = Field(default=None, description="Market sentiment")
+    time_of_day: Optional[str] = Field(default=None, description="Time context")
+    custom_context: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom context fields")
+    model_config = ConfigDict(extra='forbid')
 
 class RequestMetadata(BaseModel):
     """Metadata for HuiHui analysis requests."""
-    request_id: str = Field(default="", description="Unique request identifier")
-    user_id: str = Field(default="", description="User identifier")
-    session_id: str = Field(default="", description="Session identifier")
-    priority: str = Field(default="normal", description="Request priority")
-    source: str = Field(default="api", description="Request source")
-    custom_metadata: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom metadata fields")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
+    request_id: Optional[str] = Field(default=None, description="Unique request identifier")
+    user_id: Optional[str] = Field(default=None, description="User identifier")
+    session_id: Optional[str] = Field(default=None, description="Session identifier")
+    priority: Optional[str] = Field(default=None, description="Request priority")
+    source: Optional[str] = Field(default=None, description="Request source")
+    custom_metadata: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom metadata fields")
+    model_config = ConfigDict(extra='forbid')
 
 class EOTSPrediction(BaseModel):
     """EOTS prediction data structure."""
@@ -36,37 +34,31 @@ class EOTSPrediction(BaseModel):
     confidence: float = Field(description="Prediction confidence")
     timeframe: str = Field(description="Prediction timeframe")
     direction: str = Field(description="Predicted direction")
-    target_price: float = Field(default=0.0, description="Target price if applicable")
-    probability: float = Field(default=0.0, description="Probability estimate")
-    custom_data: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom prediction data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
+    target_price: Optional[float] = Field(default=None, description="Target price if applicable")
+    probability: Optional[float] = Field(default=None, description="Probability estimate")
+    custom_data: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom prediction data")
+    model_config = ConfigDict(extra='forbid')
 
 class TradingRecommendation(BaseModel):
     """Trading recommendation structure."""
     action: str = Field(description="Recommended action (buy/sell/hold)")
     symbol: str = Field(description="Symbol for recommendation")
-    quantity: int = Field(default=0, description="Recommended quantity")
-    price_target: float = Field(default=0.0, description="Price target")
-    stop_loss: float = Field(default=0.0, description="Stop loss level")
+    quantity: Optional[int] = Field(default=None, description="Recommended quantity")
+    price_target: Optional[float] = Field(default=None, description="Price target")
+    stop_loss: Optional[float] = Field(default=None, description="Stop loss level")
     confidence: float = Field(description="Recommendation confidence")
-    reasoning: str = Field(default="", description="Reasoning for recommendation")
-    risk_level: str = Field(default="medium", description="Risk level")
-    timeframe: str = Field(default="intraday", description="Recommendation timeframe")
-    custom_attributes: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom recommendation attributes")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
+    reasoning: Optional[str] = Field(default=None, description="Reasoning for recommendation")
+    risk_level: Optional[str] = Field(default=None, description="Risk level")
+    timeframe: Optional[str] = Field(default=None, description="Recommendation timeframe")
+    custom_attributes: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom recommendation attributes")
+    model_config = ConfigDict(extra='forbid')
 
 class PerformanceByCondition(BaseModel):
     """Performance metrics by market condition."""
-    success_rate: float = Field(default=0.0, description="Success rate for this condition")
-    avg_processing_time: float = Field(default=0.0, description="Average processing time")
-    total_requests: int = Field(default=0, description="Total requests in this condition")
-    avg_confidence: float = Field(default=0.0, description="Average confidence score")
-    error_rate: float = Field(default=0.0, description="Error rate for this condition")
-    custom_metrics: Dict[str, float] = Field(default_factory=dict, description="Custom performance metrics")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
+    success_rate: Optional[float] = Field(default=None, description="Success rate for this condition")
+    avg_processing_time: Optional[float] = Field(default=None, description="Average processing time")
+    total_requests: int = Field(default=0, description="Total requests in this condition") # 0 is valid start
+    avg_confidence: Optional[float] = Field(default=None, description="Average confidence score")
+    error_rate: Optional[float] = Field(default=None, description="Error rate for this condition")
+    custom_metrics: Optional[Dict[str, float]] = Field(default=None, description="Custom performance metrics")
+    model_config = ConfigDict(extra='forbid')

@@ -47,24 +47,21 @@ class MiniHeatmapConfig(BaseModel):
     enabled: bool = Field(default=True, description="Enable mini heatmap")
     grid_size: tuple = Field(default=(10, 10), description="Grid size for heatmap")
     
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 class RecommendationsTableConfig(BaseModel):
     """Configuration for recommendations table display."""
     enabled: bool = Field(default=True, description="Enable recommendations table")
     max_rows: int = Field(default=10, description="Maximum rows to display")
     
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 class TickerContextConfig(BaseModel):
     """Configuration for ticker context display."""
     enabled: bool = Field(default=True, description="Enable ticker context")
     show_details: bool = Field(default=True, description="Show detailed context information")
     
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 class DashboardDefaults(BaseModel):
     """Default settings for dashboard components - FAIL FAST ON MISSING CONFIG."""
@@ -90,7 +87,7 @@ class DashboardDefaults(BaseModel):
             raise ValueError("CRITICAL: dte_min must be less than dte_max!")
         return self
 
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra='forbid') # Changed from 'allow'
 
 class DashboardServerConfig(BaseModel):
     """Configuration for dashboard server."""
@@ -99,15 +96,15 @@ class DashboardServerConfig(BaseModel):
     debug: bool = Field(default=False, description="Enable debug mode")
 
     # Additional config fields from config file
-    auto_refresh_seconds: Optional[int] = Field(30, description="Auto refresh interval in seconds")
-    timestamp_format: Optional[str] = Field('%Y-%m-%d %H:%M:%S %Z', description="Timestamp format")
-    defaults: Optional[DashboardDefaults] = Field(default_factory=DashboardDefaults, description="Default dashboard settings")
-    modes_detail_config: Union[Dict[str, Any], 'DashboardModeCollection'] = Field(default_factory=dict, description="Dashboard modes configuration")
-    flow_mode_settings: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Flow mode settings")
-    volatility_mode_settings: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Volatility mode settings")
-    main_dashboard_settings: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Main dashboard settings")
+    auto_refresh_seconds: Optional[int] = Field(default=30, description="Auto refresh interval in seconds")
+    timestamp_format: Optional[str] = Field(default='%Y-%m-%d %H:%M:%S %Z', description="Timestamp format")
+    defaults: Optional[DashboardDefaults] = Field(default_factory=DashboardDefaults, description="Default dashboard settings") # This is fine as DashboardDefaults has required fields
+    modes_detail_config: Optional[Union[Dict[str, Any], 'DashboardModeCollection']] = Field(default=None, description="Dashboard modes configuration")
+    flow_mode_settings: Optional[Dict[str, Any]] = Field(default=None, description="Flow mode settings")
+    volatility_mode_settings: Optional[Dict[str, Any]] = Field(default=None, description="Volatility mode settings")
+    main_dashboard_settings: Optional[Dict[str, Any]] = Field(default=None, description="Main dashboard settings")
 
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra='allow') # Allowing extra fields here might be a specific design choice for top-level config.
 
 class SignalActivationSettings(BaseModel):
     """Configuration for signal activation."""
@@ -117,7 +114,7 @@ class SignalActivationSettings(BaseModel):
     # Additional config fields from config file
     EnableAllSignals: Optional[bool] = Field(True, description="Enable all signals")
 
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra='forbid') # Changed from 'allow'
 
 
 # =============================================================================
@@ -130,7 +127,7 @@ class DashboardModeSettings(BaseModel):
     module_name: str = Field(..., description="Python module name to import for this mode's layout and callbacks.")
     charts: List[str] = Field(default_factory=list, description="List of chart/component identifier names expected to be displayed in this mode.")
 
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration as per user preferences
+    model_config = ConfigDict(extra='forbid')
 
 class MainDashboardDisplaySettings(BaseModel):
     """Settings specific to components on the main dashboard display."""
@@ -141,8 +138,7 @@ class MainDashboardDisplaySettings(BaseModel):
     recommendations_table: RecommendationsTableConfig = Field(default_factory=RecommendationsTableConfig, description="Configuration for the ATIF recommendations table.")
     ticker_context: TickerContextConfig = Field(default_factory=TickerContextConfig, description="Settings for ticker context display area.")
     
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid') # Converted from class Config
 
 class DashboardModeCollection(BaseModel):
     """Defines the collection of all available dashboard modes."""
@@ -175,7 +171,7 @@ class DashboardModeCollection(BaseModel):
         charts=["ai_market_analysis", "ai_recommendations", "ai_insights", "ai_regime_context", "ai_performance_tracker"]
     ))
 
-    model_config = ConfigDict(extra='allow')  # Allow extra fields from JSON
+    model_config = ConfigDict(extra='forbid')  # Changed from 'allow'
 
     @classmethod
     def model_validate(cls, obj):
@@ -213,7 +209,7 @@ class VisualizationSettings(BaseModel):
     dashboard_mode_settings: Optional[Dict[str, Any]] = Field(default=None, description="Dashboard mode configuration settings.")
     main_dashboard_display_settings: Optional[Dict[str, Any]] = Field(default=None, description="Main dashboard display configuration.")
 
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra='forbid') # Changed from 'allow'
 
 
 # =============================================================================
@@ -236,8 +232,7 @@ class SystemSettings(BaseModel):
     )
     signal_activation: SignalActivationSettings = Field(default_factory=SignalActivationSettings, description="Master toggles for enabling or disabling specific signal generation routines or categories.")
     
-    class Config: 
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 
 # =============================================================================
@@ -246,21 +241,19 @@ class SystemSettings(BaseModel):
 
 class ApiKeysSettings(BaseModel):
     """Configuration for API keys."""
-    keys: Dict[str, str] = Field(default_factory=dict, description="API keys")
+    keys: Optional[Dict[str, str]] = Field(default=None, description="API keys")
     
     def to_dict(self) -> Dict[str, Any]:
         return self.model_dump()
     
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 class ConvexValueAuthSettings(BaseModel):
     """Authentication settings for ConvexValue API."""
     use_env_variables: bool = Field(True, description="If true, attempts to load credentials from environment variables first.")
     auth_method: str = Field("email_password", description="Authentication method for ConvexValue API (e.g., 'email_password', 'api_key').")
     
-    class Config: 
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 class DataFetcherSettings(BaseModel):
     """Settings for data fetching components."""
@@ -275,10 +268,10 @@ class DataFetcherSettings(BaseModel):
     retry_delay: Optional[float] = Field(5.0, description="Delay in seconds between retries.")
     timeout: Optional[float] = Field(30.0, description="Timeout in seconds for API requests.")
     
-    # REMOVED: to_dict() method - Use model_dump() instead for Pydantic v2 compliance
-    # This enforces strict Pydantic v2 architecture with no dictionary fallbacks
+    def to_dict(self) -> Dict[str, Any]: # Ensure it uses model_dump
+        return self.model_dump(exclude_none=True)
     
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra='forbid') # Changed from 'allow'
 
 class DataManagementSettings(BaseModel):
     """Settings related to data caching and storage."""
@@ -289,8 +282,7 @@ class DataManagementSettings(BaseModel):
     data_store_directory: Optional[str] = Field("data_cache_v2_5/data_store", description="Data store directory path.")
     cache_expiry_hours: Optional[float] = Field(24.0, description="Cache expiry in hours.")
     
-    class Config: 
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 
 # =============================================================================
@@ -307,8 +299,7 @@ class DatabaseSettings(BaseModel):
     min_connections: int = Field(1, ge=0, description="Minimum number of connections in pool.")
     max_connections: int = Field(10, ge=1, description="Maximum number of connections in pool.")
 
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 
 # =============================================================================
@@ -394,4 +385,4 @@ class IntradayCollectorSettings(BaseModel):
     dte_max: Optional[int] = Field(5, description="Maximum days to expiration")
     fetch_interval_seconds: Optional[int] = Field(30, description="Fetch interval in seconds")
 
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra='forbid') # Changed from 'allow'

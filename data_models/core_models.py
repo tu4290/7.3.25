@@ -163,11 +163,23 @@ class AISystemHealthV2_5(BaseModel):
         return v
 
     model_config = ConfigDict(
-        extra='allow',
+        extra='forbid', # Changed from 'allow'
         json_encoders={
             datetime: lambda v: v.isoformat()
         }
     )
+
+class AuditLogEntry(BaseModel):
+    """Audit log entry structure."""
+    function_name: str
+    timestamp: datetime
+    user_id: Optional[str] = None
+    args: List[Any]
+    kwargs: Dict[str, Any]
+    result_status: str
+    execution_time_ms: float
+    trace_id: str
+    model_config = ConfigDict(extra='forbid')
 
 # =============================================================================
 # RAW DATA MODELS (from raw_data.py)
@@ -560,7 +572,7 @@ class ProcessedStrikeLevelMetricsV2_5(BaseModel):
     vomma_impact_raw: Optional[float] = Field(None, description="Raw Vomma impact for this strike.")
     charm_impact_raw: Optional[float] = Field(None, description="Raw Charm impact for this strike.")
 
-    model_config = ConfigDict(extra='allow')  # Allow extra fields for flexible configuration and testing
+    model_config = ConfigDict(extra='forbid')  # Changed from 'allow'
 
     @field_validator('prediction_confidence', 'signal_strength')
     @classmethod
@@ -746,7 +758,7 @@ class ProcessedUnderlyingAggregatesV2_5(RawUnderlyingDataCombinedV2_5):
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True,  # For PandasDataFrame
-        extra='allow'  # Allow flexible configuration
+        extra='forbid'  # Changed from 'allow'
     )
 
 
@@ -777,24 +789,26 @@ class ProcessedDataBundleV2_5(BaseModel):
     )
 
 # =============================================================================
-# BUNDLE SCHEMAS (from bundle_schemas.py)
+# BUNDLE SCHEMAS (from bundle_schemas.py) - Definitions moved/consolidated
 # =============================================================================
 """
 Pydantic models for top-level data bundles used in EOTS v2.5,
 primarily for packaging comprehensive analysis results for consumption
 by the dashboard or other system outputs.
+The models UnprocessedDataBundleV2_5, FinalAnalysisBundleV2_5, and UnifiedIntelligenceAnalysis
+are defined earlier in this consolidated core_models.py file.
 """
 
 # Import necessary schemas from other new modules
-# from processed_data import ProcessedDataBundleV2_5
-# from signal_level_schemas import SignalPayloadV2_5, KeyLevelsDataV2_5
-# from atif_schemas import ATIFStrategyDirectivePayloadV2_5 # For ATIF's pre-TPO directives
-# from recommendation_schemas import ActiveRecommendationPayloadV2_5
+# from .processed_data import ProcessedDataBundleV2_5 # Defined above
+# from .trading_market_models import SignalPayloadV2_5, KeyLevelsDataV2_5 # Should be imported by FinalAnalysisBundleV2_5 if needed
+# from .trading_market_models import ATIFStrategyDirectivePayloadV2_5
+# from .trading_market_models import ActiveRecommendationPayloadV2_5
 
 # Import dependencies or use TYPE_CHECKING for forward references
-# from raw_data import RawOptionsContractV2_5
+# from .raw_data import RawOptionsContractV2_5 # Defined above
 
-# Import these from their proper modules to avoid circular dependencies
+# The following TYPE_CHECKING block might still be relevant for the FinalAnalysisBundleV2_5 defined above
 if TYPE_CHECKING:
     from .trading_market_models import (
         SignalPayloadV2_5,
@@ -803,16 +817,9 @@ if TYPE_CHECKING:
         ActiveRecommendationPayloadV2_5
     )
 
-class UnprocessedDataBundleV2_5(BaseModel):
-    """Container for all raw/unprocessed market data before analytics and metrics are applied."""
-    options_contracts: List[RawOptionsContractV2_5] = Field(default_factory=list, description="Raw options contracts fetched from data provider.")
-    underlying_data: RawUnderlyingDataCombinedV2_5 = Field(..., description="Raw underlying asset data.")
-    fetch_timestamp: datetime = Field(..., description="Timestamp when data was fetched.")
-    errors: List[str] = Field(default_factory=list, description="Any errors encountered during data fetch.")
-    model_config = ConfigDict(extra='forbid')
+# UnprocessedDataBundleV2_5 definition removed from here as it's defined earlier.
 
-
-class FinalAnalysisBundleV2_5(BaseModel):
+class FinalAnalysisBundleV2_5(BaseModel): # This line will be part of the next removal if it's a duplicate
     """
     The comprehensive, top-level data structure that encapsulates all analytical
     outputs for a single symbol from one full EOTS v2.5 analysis cycle.
@@ -902,3 +909,32 @@ class AdvancedOptionsMetricsV2_5(BaseModel):
     confidence_score: Optional[float] = None  # 0-1 based on data quality
     data_quality_score: Optional[float] = None  # Additional data quality metric
     contracts_analyzed: Optional[int] = None  # Number of contracts analyzed
+    model_config = ConfigDict(extra='forbid')
+
+class NormalizationParams(BaseModel):
+    """Pydantic model for exposure normalization parameters"""
+    mean: float = Field(description="Mean value for normalization")
+    std: float = Field(description="Standard deviation for normalization")
+
+    model_config = ConfigDict(extra='forbid')
+
+__all__ = [
+    "DataFrameSchema",
+    "PandasDataFrame",
+    "NormalizationParams", # Added NormalizationParams
+    "SystemComponentStatuses",
+    "SystemStateV2_5",
+    "AISystemHealthV2_5",
+    "AuditLogEntry",
+    "RawOptionsContractV2_5",
+    "RawUnderlyingDataV2_5",
+    "RawUnderlyingDataCombinedV2_5",
+    "UnprocessedDataBundleV2_5",
+    "ProcessedContractMetricsV2_5",
+    "ProcessedStrikeLevelMetricsV2_5",
+    "ProcessedUnderlyingAggregatesV2_5",
+    "ProcessedDataBundleV2_5",
+    "FinalAnalysisBundleV2_5",
+    "UnifiedIntelligenceAnalysis",
+    "AdvancedOptionsMetricsV2_5",
+]

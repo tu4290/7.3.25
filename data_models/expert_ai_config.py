@@ -50,50 +50,48 @@ class ExpertType(str, Enum):
 
 class CustomApiKeys(BaseModel):
     """Placeholder for custom API keys."""
-    custom_keys: Dict[str, str] = Field(default_factory=dict, description="Custom API keys")
+    custom_keys: Optional[Dict[str, str]] = Field(default=None, description="Custom API keys")
     
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
 
 class CustomModelConfig(BaseModel):
     """Placeholder for custom model configuration."""
-    model_params: Dict[str, Any] = Field(default_factory=dict, description="Custom model parameters")
+    model_params: Optional[Dict[str, Any]] = Field(default=None, description="Custom model parameters")
 
 class CustomEndpoints(BaseModel):
     """Placeholder for custom endpoints."""
-    endpoints: Dict[str, str] = Field(default_factory=dict, description="Custom endpoints")
+    endpoints: Optional[Dict[str, str]] = Field(default=None, description="Custom endpoints")
 
 class CustomRateLimits(BaseModel):
     """Placeholder for custom rate limits."""
-    limits: Dict[str, int] = Field(default_factory=dict, description="Custom rate limits")
+    limits: Optional[Dict[str, int]] = Field(default=None, description="Custom rate limits")
 
 class CustomSecuritySettings(BaseModel):
     """Placeholder for custom security settings."""
-    security_params: Dict[str, Any] = Field(default_factory=dict, description="Custom security parameters")
+    security_params: Optional[Dict[str, Any]] = Field(default=None, description="Custom security parameters")
 
 class CustomPerformanceSettings(BaseModel):
     """Placeholder for custom performance settings."""
-    performance_params: Dict[str, Any] = Field(default_factory=dict, description="Custom performance parameters")
+    performance_params: Optional[Dict[str, Any]] = Field(default=None, description="Custom performance parameters")
 
 class CustomIntegrationSettings(BaseModel):
     """Placeholder for custom integration settings."""
-    integration_params: Dict[str, Any] = Field(default_factory=dict, description="Custom integration parameters")
+    integration_params: Optional[Dict[str, Any]] = Field(default=None, description="Custom integration parameters")
 
 class CustomAgentSettings(BaseModel):
     """Placeholder for custom agent settings."""
-    agent_params: Dict[str, Any] = Field(default_factory=dict, description="Custom agent parameters")
+    agent_params: Optional[Dict[str, Any]] = Field(default=None, description="Custom agent parameters")
 
 class CustomLearningSettings(BaseModel):
     """Placeholder for custom learning settings."""
-    learning_params: Dict[str, Any] = Field(default_factory=dict, description="Custom learning parameters")
+    learning_params: Optional[Dict[str, Any]] = Field(default=None, description="Custom learning parameters")
 
 class CustomSafetySettings(BaseModel):
     """Placeholder for custom safety settings."""
-    safety_params: Dict[str, Any] = Field(default_factory=dict, description="Custom safety parameters")
+    safety_params: Optional[Dict[str, Any]] = Field(default=None, description="Custom safety parameters")
 
 class CustomInsightSettings(BaseModel):
     """Placeholder for custom insight settings."""
-    insight_params: Dict[str, Any] = Field(default_factory=dict, description="Custom insight parameters")
+    insight_params: Optional[Dict[str, Any]] = Field(default=None, description="Custom insight parameters")
 
 class ThresholdTypes(str, Enum):
     """Types of thresholds."""
@@ -103,7 +101,7 @@ class ThresholdTypes(str, Enum):
 
 class CustomThresholdSettings(BaseModel):
     """Placeholder for custom threshold settings."""
-    thresholds: Dict[str, float] = Field(default_factory=dict, description="Custom thresholds")
+    thresholds: Optional[Dict[str, float]] = Field(default=None, description="Custom thresholds")
 
 
 # =============================================================================
@@ -118,9 +116,6 @@ class ApiKeyConfig(BaseModel):
     huggingface_key: Optional[str] = Field(None, description="HuggingFace API key")
     custom_keys: CustomApiKeys = Field(default_factory=CustomApiKeys, description="Custom API keys")
     
-    # REMOVED: to_dict() method - Use model_dump() instead for Pydantic v2 compliance
-    # This enforces strict Pydantic v2 architecture with no dictionary fallbacks
-
 class ModelConfig(BaseModel):
     """Configuration for AI models - FAIL FAST ON MISSING CONFIG."""
     provider: ModelProvider = Field(..., description="Model provider - REQUIRED")
@@ -148,19 +143,12 @@ class ModelConfig(BaseModel):
             warnings.warn(f"WARNING: Temperature {v} is high for financial AI - verify this is intentional!")
         return v
     
-    # Removed to_dict() method - use model_dump() directly when dictionary conversion is absolutely necessary
-    # Prefer keeping data as Pydantic v2 models throughout the system
-
 class EndpointConfig(BaseModel):
     """Configuration for API endpoints."""
     base_url: str = Field(..., description="Base URL for the API")
     api_version: Optional[str] = Field(None, description="API version")
     custom_endpoints: CustomEndpoints = Field(default_factory=CustomEndpoints, description="Custom endpoints")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format."""
-        return self.model_dump()
-
 class RateLimitConfig(BaseModel):
     """Configuration for rate limiting."""
     requests_per_minute: int = Field(default=60, ge=1, description="Requests per minute limit")
@@ -168,10 +156,6 @@ class RateLimitConfig(BaseModel):
     burst_limit: int = Field(default=10, ge=1, description="Burst request limit")
     custom_limits: CustomRateLimits = Field(default_factory=CustomRateLimits, description="Custom rate limits")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format."""
-        return self.model_dump()
-
 
 # =============================================================================
 # EXPERT SYSTEM CONFIGURATION
@@ -197,10 +181,6 @@ class ExpertSystemConfig(BaseModel):
     custom_insights: CustomInsightSettings = Field(default_factory=CustomInsightSettings, description="Custom insight settings")
     custom_thresholds: CustomThresholdSettings = Field(default_factory=CustomThresholdSettings, description="Custom threshold settings")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format."""
-        return self.model_dump()
-
     model_config = ConfigDict(extra='forbid')
 
 
@@ -230,7 +210,7 @@ class AdaptiveLearningConfigV2_5(BaseModel):
     learning_rate: Optional[float] = Field(0.01, description="Learning rate for adaptation")
     adaptation_threshold: Optional[float] = Field(0.1, description="Adaptation threshold")
 
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra='forbid')
 
 
 # =============================================================================
@@ -241,9 +221,6 @@ class ConfidenceCalibration(BaseModel):
     """Placeholder for confidence calibration."""
     calibration_factor: float = Field(default=1.0, description="Calibration factor")
     
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
-
 class PredictionConfigV2_5(BaseModel):
     """Configuration for the AI Predictions Manager module."""
     enabled: bool = Field(True, description="Enable/disable AI predictions.")
@@ -253,20 +230,10 @@ class PredictionConfigV2_5(BaseModel):
     confidence_calibration: ConfidenceCalibration = Field(default_factory=ConfidenceCalibration, description="Parameters for calibrating confidence scores based on signal strength.")
     success_threshold: float = Field(0.7, ge=0.0, le=1.0, description="Minimum performance score for a prediction to be considered successful.")
     
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            'enabled': self.enabled,
-            'model_name': self.model_name,
-            'prediction_interval_seconds': self.prediction_interval_seconds,
-            'max_data_age_seconds': self.max_data_age_seconds,
-            'confidence_calibration': self.confidence_calibration.to_dict(),
-            'success_threshold': self.success_threshold
-        }
-
     # Additional config fields from config file
     min_confidence: Optional[float] = Field(0.6, description="Minimum confidence threshold")
 
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra='forbid')
 
 
 # =============================================================================
@@ -276,11 +243,11 @@ class PredictionConfigV2_5(BaseModel):
 # Placeholder classes for MOE detailed configurations
 class CustomLoadBalancingFactors(BaseModel):
     """Placeholder for custom load balancing factors."""
-    custom_factors: Dict[str, Any] = Field(default_factory=dict, description="Custom load balancing factors")
+    custom_factors: Optional[Dict[str, Any]] = Field(default=None, description="Custom load balancing factors")
 
 class CustomRequestParameters(BaseModel):
     """Placeholder for custom request parameters."""
-    custom_params: Dict[str, Any] = Field(default_factory=dict, description="Custom request parameters")
+    custom_params: Optional[Dict[str, Any]] = Field(default=None, description="Custom request parameters")
 
 class RequestContext(BaseModel):
     """Context information for MOE requests."""
@@ -297,27 +264,19 @@ class RequestContext(BaseModel):
 
     model_config = ConfigDict(extra='forbid')
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
-
 class LoadBalancingFactors(BaseModel):
     """Load balancing considerations for expert selection."""
-    cpu_utilization: float = Field(default=0.0, description="Current CPU utilization", ge=0.0, le=100.0)
-    memory_utilization: float = Field(default=0.0, description="Current memory utilization", ge=0.0, le=100.0)
-    active_requests: int = Field(default=0, description="Number of active requests", ge=0)
-    queue_length: int = Field(default=0, description="Request queue length", ge=0)
-    response_time_avg: float = Field(default=0.0, description="Average response time in ms", ge=0.0)
-    error_rate: float = Field(default=0.0, description="Current error rate", ge=0.0, le=100.0)
-    throughput: float = Field(default=0.0, description="Requests per second", ge=0.0)
-    health_score: float = Field(default=1.0, description="Overall health score", ge=0.0, le=1.0)
+    cpu_utilization: Optional[float] = Field(default=None, description="Current CPU utilization", ge=0.0, le=100.0)
+    memory_utilization: Optional[float] = Field(default=None, description="Current memory utilization", ge=0.0, le=100.0)
+    active_requests: Optional[int] = Field(default=None, description="Number of active requests", ge=0)
+    queue_length: Optional[int] = Field(default=None, description="Request queue length", ge=0)
+    response_time_avg: Optional[float] = Field(default=None, description="Average response time in ms", ge=0.0)
+    error_rate: Optional[float] = Field(default=None, description="Current error rate", ge=0.0, le=100.0)
+    throughput: Optional[float] = Field(default=None, description="Requests per second", ge=0.0)
+    health_score: Optional[float] = Field(default=None, description="Overall health score", ge=0.0, le=1.0)
     custom_factors: Optional[CustomLoadBalancingFactors] = Field(None, description="Custom load balancing factors")
 
     model_config = ConfigDict(extra='forbid')
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
 
 class MOERoutingStrategy(str, Enum):
     """Routing strategies for MOE system."""
@@ -364,8 +323,4 @@ class MOESystemConfig(BaseModel):
             raise ValueError("max_experts must be greater than or equal to min_experts")
         return v
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
-
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra='forbid')

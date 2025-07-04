@@ -37,8 +37,7 @@ class DashboardModeSettings(BaseModel):
     module_name: str = Field(..., description="Python module name (e.g., 'main_dashboard_display_v2_5') to import for this mode's layout and callbacks.")
     charts: List[str] = Field(default_factory=list, description="List of chart/component identifier names expected to be displayed in this mode.")
     
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 
 class MainDashboardDisplaySettings(BaseModel):
@@ -50,8 +49,7 @@ class MainDashboardDisplaySettings(BaseModel):
     recommendations_table: RecommendationsTableConfig = Field(default_factory=RecommendationsTableConfig, description="Configuration for the ATIF recommendations table.")
     ticker_context: TickerContextConfig = Field(default_factory=TickerContextConfig, description="Settings for ticker context display area.")
     
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 
 class DashboardModeCollection(BaseModel):
@@ -78,8 +76,7 @@ class DashboardModeCollection(BaseModel):
         charts=["vapi_gauges", "dwfd_gauges", "tw_laf_gauges"]
     ))
     
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 
 class VisualizationSettings(BaseModel):
@@ -90,8 +87,7 @@ class VisualizationSettings(BaseModel):
     modes_detail_config: DashboardModeCollection = Field(default_factory=lambda: DashboardModeCollection())
     main_dashboard_settings: MainDashboardDisplaySettings = Field(default_factory=lambda: MainDashboardDisplaySettings())
 
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 
 # --- Metric Calculation Coefficients ---
@@ -114,7 +110,7 @@ class VriGammaCoeffs(BaseModel): # Note: "Gamma" here refers to vri_gamma, not o
     aligned: float = Field(default=1.35, description="Coefficient for aligned Vanna flow proxy.")
     opposed: float = Field(default=0.65, description="Coefficient for opposed Vanna flow proxy.")
     neutral: float = Field(default=1.0, description="Coefficient for neutral Vanna flow proxy.")
-    class Config: extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 class CoefficientsSettings(BaseModel):
     """Container for various metric calculation coefficients."""
@@ -128,8 +124,7 @@ class CoefficientsSettings(BaseModel):
             'tdpi_beta': self.tdpi_beta.model_dump(),
             'vri_gamma': self.vri_gamma.model_dump()
         }
-    
-    class Config: extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 
 # --- Data Processor Settings ---
@@ -143,10 +138,12 @@ class DataProcessorSettings(BaseModel):
          return {
              'factors': self.factors.to_dict(),
              'coefficients': self.coefficients.to_dict(),
-             'iv_context_parameters': self.iv_context_parameters.to_dict()
+             'iv_context_parameters': self.iv_context_parameters.to_dict() # .to_dict() on sub-model should be .model_dump()
          }
-    
-    class Config: extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
+
+    def to_dict(self) -> Dict[str, Any]: # Overwrite to ensure proper model_dump usage
+         return self.model_dump(exclude_none=True)
 
 
 # --- Market Regime Engine Settings ---
@@ -277,33 +274,36 @@ class LearningParams(BaseModel):
     min_trades_for_statistical_significance: int = Field(20, ge=1, description="Minimum number of trades for a specific setup/symbol/regime before performance significantly influences weights.")
     class Config: extra = 'forbid'
 
-class ATIFSettingsModel(BaseModel):
-    min_conviction_to_initiate_trade: float = Field(..., description="Minimum conviction score required to initiate a trade.")
-    signal_integration_params: dict = Field(default_factory=dict)
-    regime_context_weight_multipliers: dict = Field(default_factory=dict)
-    conviction_mapping_params: dict = Field(default_factory=dict)
-    strategy_specificity_rules: list = Field(default_factory=list)
-    intelligent_recommendation_management_rules: dict = Field(default_factory=dict)
-    learning_params: LearningParams = Field(default_factory=lambda: LearningParams())
+# ATIFSettingsModel appears to be an older version of AdaptiveTradeIdeaFrameworkSettings.
+# The canonical AdaptiveTradeIdeaFrameworkSettings is defined in data_models/configuration_models.py
+# class ATIFSettingsModel(BaseModel):
+#     min_conviction_to_initiate_trade: float = Field(..., description="Minimum conviction score required to initiate a trade.")
+#     signal_integration_params: dict = Field(default_factory=dict)
+#     regime_context_weight_multipliers: dict = Field(default_factory=dict)
+#     conviction_mapping_params: dict = Field(default_factory=dict)
+#     strategy_specificity_rules: list = Field(default_factory=list)
+#     intelligent_recommendation_management_rules: dict = Field(default_factory=dict)
+#     learning_params: LearningParams = Field(default_factory=lambda: LearningParams())
 
-    class Config:
-        extra = "forbid" # Changed to forbid to enforce strictness
+#     class Config:
+#         extra = "forbid" # Changed to forbid to enforce strictness
 
-class AdaptiveTradeIdeaFrameworkSettings(BaseModel):
-    """Comprehensive settings for the Adaptive Trade Idea Framework (ATIF)."""
-    min_conviction_to_initiate_trade: float = Field(2.5, ge=0, le=5, description="Minimum ATIF conviction score (0-5 scale) to generate a new trade recommendation.")
-    signal_integration_params: SignalIntegrationParameters = Field(default_factory=SignalIntegrationParameters, description="Parameters for how ATIF integrates and weights raw signals (e.g., base_signal_weights, performance_weighting_sensitivity).")
-    regime_context_weight_multipliers: RegimeContextWeightMultipliers = Field(default_factory=RegimeContextWeightMultipliers, description="Multipliers applied to signal weights based on current market regime.")
-    conviction_mapping_params: ConvictionMappingParameters = Field(default_factory=ConvictionMappingParameters, description="Rules and thresholds for mapping ATIF's internal assessment to a final conviction score.")
-    strategy_specificity_rules: List[StrategySpecificRule] = Field(default_factory=list, description="Rule set mapping [Assessment + Conviction + Regime + Context + IV] to specific option strategies, DTEs, and deltas.")
-    intelligent_recommendation_management_rules: IntelligentRecommendationManagementRules = Field(default_factory=IntelligentRecommendationManagementRules, description="Rules for adaptive exits, parameter adjustments, and partial position management.")
-    learning_params: LearningParams = Field(default_factory=lambda: LearningParams())
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
-    
-    class Config: extra = 'forbid'
+# AdaptiveTradeIdeaFrameworkSettings is defined and refactored in data_models/configuration_models.py
+# class AdaptiveTradeIdeaFrameworkSettings(BaseModel):
+#     """Comprehensive settings for the Adaptive Trade Idea Framework (ATIF)."""
+#     min_conviction_to_initiate_trade: float = Field(2.5, ge=0, le=5, description="Minimum ATIF conviction score (0-5 scale) to generate a new trade recommendation.")
+#     signal_integration_params: SignalIntegrationParameters = Field(default_factory=SignalIntegrationParameters, description="Parameters for how ATIF integrates and weights raw signals (e.g., base_signal_weights, performance_weighting_sensitivity).")
+#     regime_context_weight_multipliers: RegimeContextWeightMultipliers = Field(default_factory=RegimeContextWeightMultipliers, description="Multipliers applied to signal weights based on current market regime.")
+#     conviction_mapping_params: ConvictionMappingParameters = Field(default_factory=ConvictionMappingParameters, description="Rules and thresholds for mapping ATIF's internal assessment to a final conviction score.")
+#     strategy_specificity_rules: List[StrategySpecificRule] = Field(default_factory=list, description="Rule set mapping [Assessment + Conviction + Regime + Context + IV] to specific option strategies, DTEs, and deltas.")
+#     intelligent_recommendation_management_rules: IntelligentRecommendationManagementRules = Field(default_factory=IntelligentRecommendationManagementRules, description="Rules for adaptive exits, parameter adjustments, and partial position management.")
+#     learning_params: LearningParams = Field(default_factory=lambda: LearningParams())
+
+#     def to_dict(self) -> Dict[str, Any]:
+#         """Convert to dictionary for backward compatibility."""
+#         return self.model_dump()
+
+#     class Config: extra = 'forbid'
 
 class TickerContextAnalyzerSettings(BaseModel):
     """Settings for the TickerContextAnalyzerV2_5."""
@@ -658,26 +658,8 @@ class EOTSConfigV2_5(BaseModel):
     intraday_collector_settings: Optional[IntradayCollectorSettings] = Field(None, description="Optional settings for a separate intraday metrics collector service.")
     prediction_config: Optional[PredictionConfigV2_5] = Field(default_factory=lambda: PredictionConfigV2_5(), description="Configuration for the AI Predictions Manager.")
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            'dashboard_config': self.dashboard_config.model_dump(),
-            'data_processor_settings': self.data_processor_settings.to_dict(),
-            'market_regime_engine_settings': self.market_regime_engine_settings.to_dict(),
-            'data_fetcher_settings': self.data_fetcher_settings.to_dict(),
-            'enhanced_flow_metric_settings': self.enhanced_flow_metric_settings.to_dict(),
-            'adaptive_trade_idea_framework_settings': self.adaptive_trade_idea_framework_settings.to_dict(),
-            'ticker_context_analyzer_settings': self.ticker_context_analyzer_settings.to_dict(),
-            'heatmap_generation_settings': self.heatmap_generation_settings.to_dict(),
-            'prediction_config': self.prediction_config.to_dict() if self.prediction_config else None,
-            'trade_parameter_optimizer_settings': self.trade_parameter_optimizer_settings.to_dict(),
-            'trading_config': self.trading_config.to_dict(),
-            'control_panel_parameters': self.control_panel_parameters.model_dump(),
-            'visualization_settings': self.visualization_settings.model_dump(),
-            'elite_config': self.elite_config.to_dict() if hasattr(self.elite_config, 'to_dict') else self.elite_config.model_dump(),
-            'symbol_specific_overrides': self.symbol_specific_overrides.model_dump(),
-            'time_of_day_definitions': self.time_of_day_definitions.to_dict() if self.time_of_day_definitions else None,
-            'intraday_collector_settings': self.intraday_collector_settings.model_dump() if self.intraday_collector_settings else None
-        }
+    def to_dict(self) -> Dict[str, Any]: # Will be replaced by model_dump()
+        return self.model_dump(exclude_none=True)
 
     model_config = ConfigDict(
         extra='forbid',
@@ -685,5 +667,6 @@ class EOTSConfigV2_5(BaseModel):
             "$schema": "http://json-schema.org/draft-07/schema#",
             "title": "EOTS_V2_5_Config_Schema_Root",
             "description": "Root schema for EOTS v2.5 configuration (config_v2_5.json). Defines all valid parameters, types, defaults, and descriptions for system operation."
-        }
+        },
+        arbitrary_types_allowed=True # Might be needed if any fields are complex non-Pydantic types
     )

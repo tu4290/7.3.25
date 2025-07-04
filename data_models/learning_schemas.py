@@ -1,6 +1,6 @@
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict # Added ConfigDict
 from .learning_config_schemas import (
     MarketContextData, AdaptationSuggestion, PerformanceMetricsSnapshot,
     LearningInsightData, ExpertAdaptationSummary, ConfidenceUpdateData,
@@ -23,6 +23,8 @@ class LearningInsightV2_5(BaseModel):
     integration_complexity: int = Field(5, ge=1, le=10, description="Complexity of applying the suggested adaptation (1=low, 10=high).")
     adaptation_type: Optional[str] = Field(None, description="Specific type of adaptation suggested (e.g., 'parameter_adjustment', 'model_retraining').")
     errors: List[str] = Field(default_factory=list, description="List of errors encountered during insight generation or processing.")
+    model_config = ConfigDict(extra='forbid')
+
 
 class UnifiedLearningResult(BaseModel):
     """Comprehensive result of a unified learning cycle, summarizing insights and adaptations."""
@@ -40,6 +42,7 @@ class UnifiedLearningResult(BaseModel):
     optimization_recommendations: List[OptimizationRecommendation] = Field(default_factory=list, description="Specific recommendations for further optimization.")
     eots_schema_compliance: bool = Field(True, description="Indicates if the learning result is compliant with EOTS schemas.")
     learning_metadata: LearningMetadata = Field(default_factory=LearningMetadata, description="Additional metadata about the learning process.")
+    model_config = ConfigDict(extra='forbid')
 
 class MarketPattern(BaseModel):
     """Represents a detected market pattern."""
@@ -53,6 +56,7 @@ class MarketPattern(BaseModel):
     outcome: Optional[str] = Field(None, description="Pattern outcome if known")
     learning_weight: float = Field(default=1.0, description="Weight for learning algorithm")
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="Timestamp of pattern detection.")
+    model_config = ConfigDict(extra='forbid')
 
 class PatternThresholds(BaseModel):
     """Defines thresholds for various market pattern detections."""
@@ -64,6 +68,7 @@ class PatternThresholds(BaseModel):
     significant_pos_thresh: float = Field(..., description="Significant positive threshold.")
     dwfd_strong_thresh: float = Field(..., description="DWFD strong threshold.")
     moderate_confidence_thresh: float = Field(..., description="Moderate confidence threshold.")
+    model_config = ConfigDict(extra='forbid')
 
 class AdaptiveLearningResult(BaseModel):
     """Pydantic model for adaptive learning results."""
@@ -73,6 +78,7 @@ class AdaptiveLearningResult(BaseModel):
     new_insights: List[str] = Field(description="New insights discovered")
     confidence_evolution: float = Field(description="Evolution in confidence scoring")
     adaptation_score: float = Field(ge=0.0, le=10.0, description="Overall adaptation score")
+    model_config = ConfigDict(extra='forbid')
 
 class RecursiveIntelligenceResult(BaseModel):
     """Pydantic model for recursive intelligence analysis."""
@@ -81,6 +87,7 @@ class RecursiveIntelligenceResult(BaseModel):
     convergence_score: float = Field(description="Analysis convergence score")
     recursive_insights: List[str] = Field(description="Insights from recursive analysis")
     meta_learning_data: MetaLearningData = Field(description="Meta-learning information")
+    model_config = ConfigDict(extra='forbid')
 
 class MarketIntelligencePattern(BaseModel):
     """Represents a market intelligence pattern detected by the system."""
@@ -96,3 +103,41 @@ class MarketIntelligencePattern(BaseModel):
     prediction: Optional[MarketPrediction] = Field(None, description="Pattern-based market prediction")
     validation_metrics: Dict[str, float] = Field(default_factory=dict, description="Pattern validation metrics")
     meta_analysis: PatternMetaAnalysis = Field(default_factory=PatternMetaAnalysis, description="Meta-analysis of the pattern")
+    model_config = ConfigDict(extra='forbid')
+
+# --- Models moved from dashboard_application/modes/ai_dashboard/eots_learning_integration_v2_5.py ---
+
+class EOTSLearningContext(BaseModel):
+    """Pydantic model for EOTS learning context."""
+    symbol: str = Field(..., description="Trading symbol")
+    current_regime: str = Field(..., description="Current market regime")
+    signal_strength: float = Field(..., ge=0.0, le=5.0, description="Overall signal strength")
+    confidence_level: float = Field(..., ge=0.0, le=1.0, description="System confidence")
+    market_conditions: Dict[str, Any] = Field(default_factory=dict, description="Market conditions")
+    eots_metrics: Dict[str, Any] = Field(default_factory=dict, description="EOTS metrics snapshot")
+    model_config = ConfigDict(extra='forbid')
+
+class EOTSPredictionOutcome(BaseModel):
+    """Pydantic model for EOTS prediction outcome validation."""
+    prediction_id: str = Field(..., description="Original prediction ID")
+    actual_regime: str = Field(..., description="Actual market regime that occurred")
+    regime_accuracy: float = Field(..., ge=0.0, le=1.0, description="Regime prediction accuracy")
+    signal_performance: float = Field(..., ge=0.0, le=1.0, description="Signal performance score")
+    market_events: List[str] = Field(default_factory=list, description="Actual market events")
+    outcome_timestamp: datetime = Field(default_factory=datetime.now, description="When outcome was recorded")
+    learning_feedback: Dict[str, Any] = Field(default_factory=dict, description="Learning feedback data")
+    model_config = ConfigDict(extra='forbid')
+
+# --- END MOVED MODELS ---
+
+__all__ = [
+    "LearningInsightV2_5",
+    "UnifiedLearningResult",
+    "MarketPattern",
+    "PatternThresholds",
+    "AdaptiveLearningResult",
+    "RecursiveIntelligenceResult",
+    "MarketIntelligencePattern",
+    "EOTSLearningContext", # Added
+    "EOTSPredictionOutcome", # Added
+]

@@ -13,11 +13,8 @@ class PerformanceMetadata(BaseModel):
     environment: Optional[str] = Field(None, description="Environment where metric was collected")
     version: Optional[str] = Field(None, description="Version of the component")
     tags: List[str] = Field(default_factory=list, description="Tags for categorization")
-    custom_fields: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom metadata fields")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_fields: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom metadata fields")
+    model_config = ConfigDict(extra='forbid')
 
 class StrategyParameters(BaseModel):
     """Strategy parameters used in backtesting."""
@@ -28,11 +25,8 @@ class StrategyParameters(BaseModel):
     take_profit_pct: Optional[float] = Field(None, description="Take profit percentage")
     max_positions: Optional[int] = Field(None, description="Maximum number of positions")
     rebalance_frequency: Optional[str] = Field(None, description="Rebalancing frequency")
-    custom_params: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom strategy parameters")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_params: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom strategy parameters")
+    model_config = ConfigDict(extra='forbid')
 
 class PerformanceSummary(BaseModel):
     """Aggregated summary statistics for performance reports."""
@@ -56,11 +50,8 @@ class PerformanceSummary(BaseModel):
     kelly_criterion: Optional[float] = Field(None, description="Kelly criterion percentage")
     var_95: Optional[float] = Field(None, description="Value at Risk (95% confidence)")
     cvar_95: Optional[float] = Field(None, description="Conditional Value at Risk (95% confidence)")
-    custom_metrics: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom summary metrics")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_metrics: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom summary metrics")
+    model_config = ConfigDict(extra='forbid')
 
 class SystemHealthMetrics(BaseModel):
     """System health and operational metrics."""
@@ -76,11 +67,8 @@ class SystemHealthMetrics(BaseModel):
     api_calls_count: Optional[int] = Field(None, description="Number of API calls made")
     response_time_avg_ms: Optional[float] = Field(None, description="Average response time in milliseconds")
     throughput_per_second: Optional[float] = Field(None, description="Throughput per second")
-    custom_health_metrics: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom health metrics")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_health_metrics: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom health metrics")
+    model_config = ConfigDict(extra='forbid')
 
 class RiskMetrics(BaseModel):
     """Risk assessment and management metrics."""
@@ -94,11 +82,8 @@ class RiskMetrics(BaseModel):
     tracking_error: Optional[float] = Field(None, description="Tracking error")
     information_ratio: Optional[float] = Field(None, description="Information ratio")
     treynor_ratio: Optional[float] = Field(None, description="Treynor ratio")
-    custom_risk_metrics: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom risk metrics")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_risk_metrics: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom risk metrics")
+    model_config = ConfigDict(extra='forbid')
 
 class MarketConditions(BaseModel):
     """Market conditions during performance measurement."""
@@ -111,8 +96,5 @@ class MarketConditions(BaseModel):
     earnings_season: Optional[bool] = Field(None, description="Whether it's earnings season")
     fomc_week: Optional[bool] = Field(None, description="Whether it's FOMC week")
     expiration_week: Optional[bool] = Field(None, description="Whether it's options expiration week")
-    custom_conditions: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom market conditions")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_conditions: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom market conditions")
+    model_config = ConfigDict(extra='forbid')

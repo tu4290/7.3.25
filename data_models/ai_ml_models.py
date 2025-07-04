@@ -6,12 +6,14 @@ learning_schemas.py, hui_hui_schemas.py, huihui_models.py, performance_schemas.p
 """
 
 # Standard library imports
+import uuid
 from typing import Optional, Dict, Any, List, Literal, TYPE_CHECKING, Deque, Tuple, Union
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from collections import deque, defaultdict
 
 # Third-party imports
+import numpy as np
 from pydantic import BaseModel, Field, ConfigDict, model_validator, field_validator, FieldValidationInfo
 from typing_extensions import Literal
 
@@ -126,7 +128,18 @@ class AIPredictionSummaryV2_5(BaseModel):
     prediction_quality_score: float = Field(..., ge=0.0, le=1.0, description="Overall quality score of predictions")
     confidence_score: float = Field(..., ge=0.0, le=1.0, description="Average confidence of active predictions")
     optimization_recommendations: List[str] = Field(default_factory=list, description="Recommendations for model optimization")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata")
+
+class AIPredictionMetricsV2_5(BaseModel):
+    """Pydantic model for tracking AI prediction metrics."""
+    total_predictions: int = Field(default=0, ge=0) # 0 is a valid start for a counter
+    successful_predictions: int = Field(default=0, ge=0) # 0 is a valid start for a counter
+    failed_predictions: int = Field(default=0, ge=0) # 0 is a valid start for a counter
+    average_confidence_score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    prediction_cycles_completed: int = Field(default=0, ge=0) # 0 is a valid start for a counter
+    total_processing_time_ms: float = Field(default=0.0, ge=0.0) # 0.0 is a valid start for a counter
+
+    model_config = ConfigDict(extra='forbid')
 
 
 # =============================================================================
@@ -520,7 +533,11 @@ __all__ = [
     'HuiHuiExpertType', 'HuiHuiModelConfigV2_5', 'HuiHuiExpertConfigV2_5', 'HuiHuiAnalysisRequestV2_5',
     'HuiHuiAnalysisResponseV2_5', 'HuiHuiUsageRecordV2_5', 'HuiHuiPerformanceMetricsV2_5',
     'HuiHuiEnsembleConfigV2_5', 'HuiHuiUserFeedbackV2_5', 'HuiHuiMarketRegimeSchema',
-    'HuiHuiOptionsFlowSchema', 'HuiHuiSentimentSchema'
+    'HuiHuiOptionsFlowSchema', 'HuiHuiSentimentSchema',
+    'AIPredictionMetricsV2_5',
+    'PerformanceMetrics',
+    'LearningBatchV2_5',
+    'EnhancedLearningMetricsV2_5',
 ]
 
 # =============================================================================
@@ -555,11 +572,11 @@ class MarketContextData(BaseModel):
 
 class AdaptationSuggestion(BaseModel):
     """Placeholder for adaptation suggestion."""
-    suggestion: str = Field(default="", description="Adaptation suggestion")
+    suggestion: Optional[str] = Field(default=None, description="Adaptation suggestion")
 
 class PerformanceMetricsSnapshot(BaseModel):
     """Placeholder for performance metrics snapshot."""
-    accuracy: float = Field(default=0.0, description="Accuracy metric")
+    accuracy: Optional[float] = Field(default=None, description="Accuracy metric")
 
 class LearningInsightData(BaseModel):
     """Placeholder for learning insight data."""
@@ -571,23 +588,23 @@ class ExpertAdaptationSummary(BaseModel):
 
 class ConfidenceUpdateData(BaseModel):
     """Placeholder for confidence update data."""
-    confidence_score: float = Field(default=0.0, description="Confidence score")
+    confidence_score: Optional[float] = Field(default=None, description="Confidence score")
 
 class OptimizationRecommendation(BaseModel):
     """Placeholder for optimization recommendation."""
-    recommendation: str = Field(default="", description="Optimization recommendation")
+    recommendation: Optional[str] = Field(default=None, description="Optimization recommendation")
 
 class LearningMetadata(BaseModel):
     """Placeholder for learning metadata."""
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Learning metadata")
+    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Learning metadata")
 
 class IntelligenceLayerData(BaseModel):
     """Placeholder for intelligence layer data."""
-    layer_data: Dict[str, Any] = Field(default_factory=dict, description="Intelligence layer data")
+    layer_data: Optional[Dict[str, Any]] = Field(default=None, description="Intelligence layer data")
 
 class MetaLearningData(BaseModel):
     """Placeholder for meta learning data."""
-    meta_data: Dict[str, Any] = Field(default_factory=dict, description="Meta learning data")
+    meta_data: Optional[Dict[str, Any]] = Field(default=None, description="Meta learning data")
 
 class PatternFeatures(BaseModel):
     """Placeholder for pattern features."""
@@ -595,11 +612,11 @@ class PatternFeatures(BaseModel):
 
 class MarketPrediction(BaseModel):
     """Placeholder for market prediction."""
-    prediction: str = Field(default="", description="Market prediction")
+    prediction: Optional[str] = Field(default=None, description="Market prediction")
 
 class PatternMetaAnalysis(BaseModel):
     """Placeholder for pattern meta analysis."""
-    analysis: Dict[str, Any] = Field(default_factory=dict, description="Pattern meta analysis")
+    analysis: Optional[Dict[str, Any]] = Field(default=None, description="Pattern meta analysis")
 
 class LearningInsightV2_5(BaseModel):
     """Represents a single learning insight generated by the HuiHui system."""
@@ -644,7 +661,7 @@ class MarketPattern(BaseModel):
     market_conditions: MarketContextData = Field(description="Market conditions when pattern occurred")
     eots_metrics: Dict[str, float] = Field(description="EOTS metrics at pattern time")
     outcome: Optional[str] = Field(None, description="Pattern outcome if known")
-    learning_weight: float = Field(default=1.0, description="Weight for learning algorithm")
+    learning_weight: Optional[float] = Field(default=None, description="Weight for learning algorithm") # Default 1.0 is arbitrary
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Timestamp of pattern detection.")
 
 class PatternThresholds(BaseModel):
@@ -689,6 +706,63 @@ class MarketIntelligencePattern(BaseModel):
     prediction: Optional[MarketPrediction] = Field(None, description="Pattern-based market prediction")
     validation_metrics: Dict[str, float] = Field(default_factory=dict, description="Pattern validation metrics")
     meta_analysis: PatternMetaAnalysis = Field(default_factory=PatternMetaAnalysis, description="Meta-analysis of the pattern")
+
+class LearningBatchV2_5(BaseModel):
+    """Represents a batch of learning data for processing."""
+    batch_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    insights: List[LearningInsightV2_5] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    status: str = "pending"
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator('insights', mode='before')
+    @classmethod
+    def validate_insights(cls, v):
+        if not v:
+            raise ValueError("Batch must contain at least one insight")
+        return v
+
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda dt: dt.isoformat(),
+            timedelta: str
+        },
+        extra='forbid'
+    )
+
+class EnhancedLearningMetricsV2_5(BaseModel):
+    """Extended metrics with additional performance indicators and caching."""
+    total_insights_generated: int = Field(default=0, ge=0)
+    successful_adaptations: int = Field(default=0, ge=0)
+    failed_adaptations: int = Field(default=0, ge=0)
+    average_confidence_score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    learning_cycles_completed: int = Field(default=0, ge=0)
+    total_processing_time_ms: float = Field(default=0.0, ge=0.0) # 0.0 is fine for a counter
+    learning_rate: float = Field(1e-3, ge=0.0)
+    batch_processing_times: List[float] = Field(default_factory=list)
+    model_versions: Optional[Dict[str, str]] = Field(default=None)
+    cache_hits: int = 0
+    cache_misses: int = 0
+    last_updated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+    @property
+    def cache_hit_ratio(self) -> float:
+        total = self.cache_hits + self.cache_misses
+        return self.cache_hits / total if total > 0 else 0.0
+
+    def update_confidence(self, new_score: float) -> None:
+        if self.total_insights_generated == 0:
+            self.average_confidence_score = new_score
+        else:
+            self.average_confidence_score = (
+                (self.average_confidence_score * self.total_insights_generated) + new_score
+            ) / (self.total_insights_generated + 1)
+        self.last_updated = datetime.now(timezone.utc)
+
+    model_config = ConfigDict(extra='forbid', json_encoders={
+        datetime: lambda dt: dt.isoformat(),
+        np.ndarray: lambda arr: arr.tolist()
+    })
 
 
 # FROM hui_hui_schemas.py
@@ -875,13 +949,13 @@ class HuiHuiMarketRegimeSchema(BaseModel):
     
     # Transition prediction
     predicted_regime_id: Optional[int] = Field(None, description="Predicted next regime ID")
-    transition_probability: float = Field(default=0.0, description="Transition probability", ge=0.0, le=1.0)
+    transition_probability: Optional[float] = Field(default=None, description="Transition probability", ge=0.0, le=1.0)
     expected_transition_timeframe: Optional[str] = Field(None, description="Expected transition timeframe")
     
     # Performance metrics
     processing_time_ms: float = Field(..., description="Processing time in milliseconds", ge=0.0)
-    data_quality_score: float = Field(default=1.0, description="Data quality score", ge=0.0, le=1.0)
-    confidence_level: float = Field(default=0.0, description="Overall confidence level", ge=0.0, le=1.0)
+    data_quality_score: Optional[float] = Field(default=None, description="Data quality score", ge=0.0, le=1.0) # Default 1.0 is unsafe
+    confidence_level: Optional[float] = Field(default=None, description="Overall confidence level", ge=0.0, le=1.0)
     
     # Supporting data
     supporting_indicators: List[str] = Field(default_factory=list, description="Supporting indicators")
@@ -905,16 +979,16 @@ class HuiHuiOptionsFlowSchema(BaseModel):
     gib_oi_based: float = Field(..., description="GIB OI-based value")
     
     # SDAG Analysis
-    sdag_multiplicative: float = Field(default=0.0, description="SDAG multiplicative methodology")
-    sdag_directional: float = Field(default=0.0, description="SDAG directional methodology")
-    sdag_weighted: float = Field(default=0.0, description="SDAG weighted methodology")
-    sdag_volatility_focused: float = Field(default=0.0, description="SDAG volatility-focused methodology")
+    sdag_multiplicative: Optional[float] = Field(default=None, description="SDAG multiplicative methodology")
+    sdag_directional: Optional[float] = Field(default=None, description="SDAG directional methodology")
+    sdag_weighted: Optional[float] = Field(default=None, description="SDAG weighted methodology")
+    sdag_volatility_focused: Optional[float] = Field(default=None, description="SDAG volatility-focused methodology")
     
     # DAG Analysis
-    dag_multiplicative: float = Field(default=0.0, description="DAG multiplicative methodology")
-    dag_additive: float = Field(default=0.0, description="DAG additive methodology")
-    dag_weighted: float = Field(default=0.0, description="DAG weighted methodology")
-    dag_consensus: float = Field(default=0.0, description="DAG consensus methodology")
+    dag_multiplicative: Optional[float] = Field(default=None, description="DAG multiplicative methodology")
+    dag_additive: Optional[float] = Field(default=None, description="DAG additive methodology")
+    dag_weighted: Optional[float] = Field(default=None, description="DAG weighted methodology")
+    dag_consensus: Optional[float] = Field(default=None, description="DAG consensus methodology")
     
     # Flow classification
     flow_type: str = Field(..., description="Primary flow type")
@@ -964,16 +1038,16 @@ class HuiHuiSentimentSchema(BaseModel):
     sentiment_confidence: float = Field(..., description="Sentiment confidence", ge=0.0, le=1.0)
     
     # Sentiment components
-    price_action_sentiment: float = Field(default=0.0, description="Price action sentiment", ge=-1.0, le=1.0)
-    volume_sentiment: float = Field(default=0.0, description="Volume sentiment", ge=-1.0, le=1.0)
-    options_sentiment: float = Field(default=0.0, description="Options sentiment", ge=-1.0, le=1.0)
+    price_action_sentiment: Optional[float] = Field(default=None, description="Price action sentiment", ge=-1.0, le=1.0)
+    volume_sentiment: Optional[float] = Field(default=None, description="Volume sentiment", ge=-1.0, le=1.0)
+    options_sentiment: Optional[float] = Field(default=None, description="Options sentiment", ge=-1.0, le=1.0)
     news_sentiment: Optional[float] = Field(None, description="News sentiment (if available)", ge=-1.0, le=1.0)
     social_sentiment: Optional[float] = Field(None, description="Social media sentiment (if available)", ge=-1.0, le=1.0)
     
     # Behavioral analysis
-    fear_greed_index: float = Field(default=0.0, description="Fear/Greed index", ge=0.0, le=100.0)
-    market_psychology: str = Field(default="neutral", description="Overall market psychology assessment")
-    sentiment_momentum: float = Field(default=0.0, description="Sentiment momentum indicator", ge=-1.0, le=1.0)
+    fear_greed_index: Optional[float] = Field(default=None, description="Fear/Greed index", ge=0.0, le=100.0)
+    market_psychology: Optional[str] = Field(default=None, description="Overall market psychology assessment") # "neutral" is placeholder
+    sentiment_momentum: Optional[float] = Field(default=None, description="Sentiment momentum indicator", ge=-1.0, le=1.0)
 
     # Advanced sentiment metrics
     put_call_ratio_sentiment: Optional[float] = Field(None, description="Put/call ratio sentiment indicator")
@@ -982,8 +1056,8 @@ class HuiHuiSentimentSchema(BaseModel):
 
     # Performance metrics
     processing_time_ms: float = Field(..., description="Processing time in milliseconds", ge=0.0)
-    data_quality_score: float = Field(default=1.0, description="Data quality score", ge=0.0, le=1.0)
-    confidence_level: float = Field(default=0.0, description="Overall confidence level", ge=0.0, le=1.0)
+    data_quality_score: Optional[float] = Field(default=None, description="Data quality score", ge=0.0, le=1.0) # Default 1.0 is unsafe
+    confidence_level: Optional[float] = Field(default=None, description="Overall confidence level", ge=0.0, le=1.0)
 
     # Supporting data
     sentiment_drivers: List[str] = Field(default_factory=list, description="Key sentiment drivers")
@@ -1086,7 +1160,7 @@ class RoutingDecision(BaseModel):
     expert_type: HuiHuiExpertType
     confidence: float
     strategy_used: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: Optional[Dict[str, Any]] = Field(default=None)
 
     model_config = ConfigDict(
         extra='forbid',
@@ -1110,27 +1184,27 @@ and execution metrics in a consistent, type-safe manner.
 # Placeholder classes for missing imports
 class PerformanceMetadata(BaseModel):
     """Placeholder for performance metadata."""
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Performance metadata")
+    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Performance metadata")
 
 class StrategyParameters(BaseModel):
     """Placeholder for strategy parameters."""
-    parameters: Dict[str, Any] = Field(default_factory=dict, description="Strategy parameters")
+    parameters: Optional[Dict[str, Any]] = Field(default=None, description="Strategy parameters")
 
 class PerformanceSummary(BaseModel):
     """Placeholder for performance summary."""
-    summary: Dict[str, Any] = Field(default_factory=dict, description="Performance summary")
+    summary: Optional[Dict[str, Any]] = Field(default=None, description="Performance summary")
 
 class SystemHealthMetrics(BaseModel):
     """Placeholder for system health metrics."""
-    health_score: float = Field(default=1.0, description="System health score")
+    health_score: Optional[float] = Field(default=None, description="System health score") # Default 1.0 is unsafe
 
 class RiskMetrics(BaseModel):
     """Placeholder for risk metrics."""
-    risk_score: float = Field(default=0.0, description="Risk score")
+    risk_score: Optional[float] = Field(default=None, description="Risk score")
 
 class MarketConditions(BaseModel):
     """Placeholder for market conditions."""
-    condition: str = Field(default="normal", description="Market condition")
+    condition: Optional[str] = Field(default=None, description="Market condition") # "normal" is placeholder
 
 class PerformanceInterval(str, Enum):
     """Time intervals for performance metrics aggregation."""
@@ -1228,3 +1302,16 @@ class PerformanceReportV2_5(BaseModel):
         if self.end_time <= self.start_time:
             raise ValueError("End time must be after start time")
         return self
+
+class PerformanceMetrics(BaseModel):
+    """Performance metrics tracking structure."""
+    function_name: str
+    execution_time_ms: float
+    memory_usage_mb: float
+    cpu_percent: float
+    timestamp: datetime
+    success: bool
+    error_message: Optional[str] = None
+    model_config = ConfigDict(extra='forbid')
+
+[end of data_models/ai_ml_models.py]

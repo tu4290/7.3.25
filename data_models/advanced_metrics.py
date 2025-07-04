@@ -1,8 +1,7 @@
-
 """
 Pydantic models for advanced, derived options metrics.
 """
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict # Added ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -30,3 +29,5 @@ class AdvancedOptionsMetricsV2_5(BaseModel):
     confidence_score: Optional[float] = None  # 0-1 based on data quality
     data_quality_score: Optional[float] = None  # Additional data quality metric
     contracts_analyzed: Optional[int] = None  # Number of contracts analyzed
+
+    model_config = ConfigDict(extra='forbid')

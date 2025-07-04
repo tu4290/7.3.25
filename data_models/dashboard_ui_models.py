@@ -254,7 +254,7 @@ class RegimeIndicatorConfig(BaseModel):
         },
         description="Color mapping for different market regimes"
     )
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 
@@ -264,7 +264,7 @@ class GaugeStep(BaseModel):
     """Configuration for gauge step ranges and colors."""
     range: List[float] = Field(..., description="Range values [min, max] for this step")
     color: str = Field(..., description="Color code for this range")
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class FlowGaugeConfig(BaseModel):
@@ -285,7 +285,7 @@ class FlowGaugeConfig(BaseModel):
         ],
         description="Gauge step configurations"
     )
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class GibGaugeConfig(BaseModel):
@@ -317,7 +317,7 @@ class GibGaugeConfig(BaseModel):
         ],
         description="Dollar gauge step configurations"
     )
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class MiniHeatmapConfig(BaseModel):
@@ -325,7 +325,7 @@ class MiniHeatmapConfig(BaseModel):
     height: int = Field(default=150, ge=50, le=500, description="Heatmap height in pixels")
     colorscale: str = Field(default="RdYlGn", description="Color scale for the heatmap")
     margin: ChartMargin = Field(default_factory=lambda: ChartMargin(t=50, b=30, l=40, r=40))
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class TableCellStyle(BaseModel):
@@ -335,7 +335,7 @@ class TableCellStyle(BaseModel):
     minWidth: str = Field(default="80px", description="Minimum cell width")
     width: str = Field(default="auto", description="Cell width")
     maxWidth: str = Field(default="200px", description="Maximum cell width")
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class TableHeaderStyle(BaseModel):
@@ -343,14 +343,14 @@ class TableHeaderStyle(BaseModel):
     backgroundColor: str = Field(default="rgb(30, 30, 30)", description="Header background color")
     fontWeight: str = Field(default="bold", description="Header font weight")
     color: str = Field(default="white", description="Header text color")
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class TableDataStyle(BaseModel):
     """Style configuration for table data."""
     backgroundColor: str = Field(default="rgb(50, 50, 50)", description="Data background color")
     color: str = Field(default="white", description="Data text color")
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class RecommendationsTableConfig(BaseModel):
@@ -361,13 +361,13 @@ class RecommendationsTableConfig(BaseModel):
     style_cell: TableCellStyle = Field(default_factory=TableCellStyle)
     style_header: TableHeaderStyle = Field(default_factory=TableHeaderStyle)
     style_data: TableDataStyle = Field(default_factory=TableDataStyle)
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class TickerContextConfig(BaseModel):
     """Configuration for ticker context display area."""
     title: str = Field(default="Ticker Context", description="Display title")
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class DashboardDefaults(BaseModel):
@@ -394,7 +394,7 @@ class DashboardDefaults(BaseModel):
             raise ValueError("CRITICAL: dte_min must be less than dte_max!")
         return self
 
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class HeatmapSettings(BaseModel):
@@ -403,7 +403,7 @@ class HeatmapSettings(BaseModel):
     colorscale: str = Field(default="RdYlGn", description="Color scale for the heatmap")
     autosize: bool = Field(default=True, description="Enable automatic sizing")
     responsive: bool = Field(default=True, description="Enable responsive design")
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class FlowModeSettings(BaseModel):
@@ -420,7 +420,7 @@ class FlowModeSettings(BaseModel):
     ugch_heatmap: HeatmapSettings = Field(default_factory=lambda: HeatmapSettings(
         height=500, colorscale="Viridis", autosize=True, responsive=True
     ))
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class VolatilityGaugeSettings(BaseModel):
@@ -429,7 +429,7 @@ class VolatilityGaugeSettings(BaseModel):
     indicator_font_size: int = Field(default=16, ge=8, description="Indicator font size")
     number_font_size: int = Field(default=24, ge=8, description="Number font size")
     margin: ChartMargin = Field(default_factory=lambda: ChartMargin(t=60, b=40, l=20, r=20))
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class VolatilityChartSettings(BaseModel):
@@ -438,7 +438,7 @@ class VolatilityChartSettings(BaseModel):
     colorscale: str = Field(default="RdYlGn", description="Color scale for the chart")
     autosize: bool = Field(default=True, description="Enable automatic sizing")
     responsive: bool = Field(default=True, description="Enable responsive design")
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class VolatilityModeSettings(BaseModel):
@@ -447,7 +447,7 @@ class VolatilityModeSettings(BaseModel):
     gauge_height: int = Field(default=300, ge=100, description="Gauge height")
     vri_2_0_chart: VolatilityChartSettings = Field(default_factory=VolatilityChartSettings)
     volatility_gauges: VolatilityGaugeSettings = Field(default_factory=VolatilityGaugeSettings)
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class DashboardModeSettings(BaseModel):
@@ -455,7 +455,7 @@ class DashboardModeSettings(BaseModel):
     label: str = Field(..., description="Display label for the mode")
     module_name: str = Field(..., description="Module name for the mode")
     charts: List[str] = Field(default_factory=list, description="List of charts in this mode")
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class ModesDetailConfig(BaseModel):
@@ -495,7 +495,7 @@ class ModesDetailConfig(BaseModel):
         module_name="ai_dashboard.ai_dashboard_display_v2_5",
         charts=["ai_market_analysis", "ai_recommendations", "ai_insights", "ai_regime_context", "ai_performance_tracker"]
     ))
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class MainDashboardSettings(BaseModel):
@@ -506,7 +506,7 @@ class MainDashboardSettings(BaseModel):
     mini_heatmap: "MiniHeatmapConfig" = Field(default_factory=lambda: MiniHeatmapConfig())
     ticker_context: "TickerContextConfig" = Field(default_factory=lambda: TickerContextConfig())
     recommendations_table: "RecommendationsTableConfig" = Field(default_factory=lambda: RecommendationsTableConfig())
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
 
 
 class DashboardServerConfig(BaseModel):
@@ -522,4 +522,4 @@ class DashboardServerConfig(BaseModel):
     flow_mode_settings: FlowModeSettings = Field(default_factory=FlowModeSettings)
     volatility_mode_settings: VolatilityModeSettings = Field(default_factory=VolatilityModeSettings)
     main_dashboard_settings: MainDashboardSettings = Field(default_factory=MainDashboardSettings)
-    model_config = ConfigDict(extra='allow')  # Allow flexible configuration
+    model_config = ConfigDict(extra='forbid')
