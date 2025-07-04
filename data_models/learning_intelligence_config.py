@@ -27,15 +27,9 @@ class MarketContextData(BaseModel):
     volume_profile: Optional[str] = Field(None, description="Volume profile analysis")
     sector_rotation: Optional[str] = Field(None, description="Sector rotation pattern")
     economic_indicators: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Economic indicators")
-    technical_indicators: Dict[str, float] = Field(default_factory=dict, description="Technical indicator values")
-    sentiment_metrics: Dict[str, float] = Field(default_factory=dict, description="Market sentiment metrics")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
-    
-    class Config:
-        extra = 'forbid'
+    technical_indicators: Optional[Dict[str, float]] = Field(default=None, description="Technical indicator values")
+    sentiment_metrics: Optional[Dict[str, float]] = Field(default=None, description="Market sentiment metrics")
+    model_config = ConfigDict(extra='forbid')
 
 class AdaptationSuggestion(BaseModel):
     """Suggested adaptation parameters based on learning insights."""
@@ -47,14 +41,8 @@ class AdaptationSuggestion(BaseModel):
     confidence_level: Optional[float] = Field(None, description="Confidence in the suggestion")
     risk_assessment: Optional[str] = Field(None, description="Risk assessment of the change")
     rollback_plan: Optional[str] = Field(None, description="Plan for rolling back if needed")
-    custom_adaptations: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom adaptation parameters")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
-    
-    class Config:
-        extra = 'forbid'
+    custom_adaptations: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom adaptation parameters")
+    model_config = ConfigDict(extra='forbid')
 
 class PerformanceMetricsSnapshot(BaseModel):
     """Performance metrics snapshot for before/after comparisons."""
@@ -70,14 +58,8 @@ class PerformanceMetricsSnapshot(BaseModel):
     volatility_pct: Optional[float] = Field(None, description="Volatility percentage")
     execution_time_ms: Optional[float] = Field(None, description="Average execution time in milliseconds")
     resource_usage_pct: Optional[float] = Field(None, description="Resource usage percentage")
-    custom_metrics: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom performance metrics")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
-    
-    class Config:
-        extra = 'forbid'
+    custom_metrics: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom performance metrics")
+    model_config = ConfigDict(extra='forbid')
 
 class LearningInsightData(BaseModel):
     """Summarized learning insights from analysis."""
@@ -89,14 +71,8 @@ class LearningInsightData(BaseModel):
     recommended_actions: List[str] = Field(default_factory=list, description="Recommended actions based on insight")
     risk_factors: List[str] = Field(default_factory=list, description="Risk factors to consider")
     validation_criteria: List[str] = Field(default_factory=list, description="Criteria for validating the insight")
-    custom_insights: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom insight data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
-    
-    class Config:
-        extra = 'forbid'
+    custom_insights: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom insight data")
+    model_config = ConfigDict(extra='forbid')
 
 class ExpertAdaptationSummary(BaseModel):
     """Summary of adaptations for expert systems."""
@@ -107,14 +83,8 @@ class ExpertAdaptationSummary(BaseModel):
     adaptation_effectiveness: Optional[float] = Field(None, description="Effectiveness of adaptations")
     rollback_required: Optional[bool] = Field(None, description="Whether rollback is required")
     next_review_date: Optional[datetime] = Field(None, description="Next review date for adaptations")
-    custom_summary: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom summary data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
-    
-    class Config:
-        extra = 'forbid'
+    custom_summary: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom summary data")
+    model_config = ConfigDict(extra='forbid')
 
 class ConfidenceUpdateData(BaseModel):
     """Data for updating confidence scores."""
@@ -122,17 +92,11 @@ class ConfidenceUpdateData(BaseModel):
     old_confidence: Optional[float] = Field(None, description="Previous confidence score")
     new_confidence: Optional[float] = Field(None, description="New confidence score")
     update_reason: Optional[str] = Field(None, description="Reason for confidence update")
-    supporting_data: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Data supporting the update")
-    validation_results: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Validation results")
+    supporting_data: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Data supporting the update")
+    validation_results: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Validation results")
     impact_assessment: Optional[str] = Field(None, description="Assessment of update impact")
-    custom_updates: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom update data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
-    
-    class Config:
-        extra = 'forbid'
+    custom_updates: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom update data")
+    model_config = ConfigDict(extra='forbid')
 
 class LearningSystemConfig(BaseModel):
     """Configuration for the learning system."""
@@ -142,131 +106,80 @@ class LearningSystemConfig(BaseModel):
     validation_window_days: int = Field(30, ge=7, description="Window for validating learning insights.")
     max_adaptations_per_cycle: int = Field(5, ge=1, description="Maximum adaptations per learning cycle.")
     rollback_threshold: float = Field(0.5, ge=0.0, le=1.0, description="Threshold for rolling back adaptations.")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            'enabled': self.enabled,
-            'learning_rate': self.learning_rate,
-            'adaptation_threshold': self.adaptation_threshold,
-            'validation_window_days': self.validation_window_days,
-            'max_adaptations_per_cycle': self.max_adaptations_per_cycle,
-            'rollback_threshold': self.rollback_threshold
-        }
-    
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 
 # =============================================================================
 # HUIHUI AI SYSTEM CONFIGURATION
 # =============================================================================
 
-class AnalysisContext(BaseModel):
+class AnalysisContext(BaseModel): # Duplicated from hui_hui_config_schemas.py
     """Context data for HuiHui analysis requests."""
-    market_conditions: str = Field(default="normal", description="Current market conditions")
+    market_conditions: Optional[str] = Field(default=None, description="Current market conditions")
     recent_news: List[str] = Field(default_factory=list, description="Recent news items")
-    volatility_regime: str = Field(default="normal", description="Current volatility regime")
-    market_sentiment: str = Field(default="neutral", description="Market sentiment")
-    time_of_day: str = Field(default="market_hours", description="Time context")
-    custom_context: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom context fields")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
-    
-    class Config:
-        extra = 'forbid'
+    volatility_regime: Optional[str] = Field(default=None, description="Current volatility regime")
+    market_sentiment: Optional[str] = Field(default=None, description="Market sentiment")
+    time_of_day: Optional[str] = Field(default=None, description="Time context")
+    custom_context: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom context fields")
+    model_config = ConfigDict(extra='forbid')
 
-class RequestMetadata(BaseModel):
+class RequestMetadata(BaseModel): # Duplicated from hui_hui_config_schemas.py
     """Metadata for HuiHui analysis requests."""
-    request_id: str = Field(default="", description="Unique request identifier")
-    user_id: str = Field(default="", description="User identifier")
-    session_id: str = Field(default="", description="Session identifier")
-    priority: str = Field(default="normal", description="Request priority")
-    source: str = Field(default="api", description="Request source")
-    custom_metadata: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom metadata fields")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
-    
-    class Config:
-        extra = 'forbid'
+    request_id: Optional[str] = Field(default=None, description="Unique request identifier")
+    user_id: Optional[str] = Field(default=None, description="User identifier")
+    session_id: Optional[str] = Field(default=None, description="Session identifier")
+    priority: Optional[str] = Field(default=None, description="Request priority")
+    source: Optional[str] = Field(default=None, description="Request source")
+    custom_metadata: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom metadata fields")
+    model_config = ConfigDict(extra='forbid')
 
-class EOTSPrediction(BaseModel):
+class EOTSPrediction(BaseModel): # Duplicated from hui_hui_config_schemas.py
     """EOTS prediction data structure."""
     prediction_type: str = Field(description="Type of prediction")
     symbol: str = Field(description="Symbol for prediction")
     confidence: float = Field(description="Prediction confidence")
     timeframe: str = Field(description="Prediction timeframe")
     direction: str = Field(description="Predicted direction")
-    target_price: float = Field(default=0.0, description="Target price if applicable")
-    probability: float = Field(default=0.0, description="Probability estimate")
-    custom_data: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom prediction data")
+    target_price: Optional[float] = Field(default=None, description="Target price if applicable")
+    probability: Optional[float] = Field(default=None, description="Probability estimate")
+    custom_data: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom prediction data")
+    model_config = ConfigDict(extra='forbid')
 
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
-
-    class Config:
-        extra = 'forbid'
-
-class TradingRecommendation(BaseModel):
+class TradingRecommendation(BaseModel): # Duplicated from hui_hui_config_schemas.py
     """Trading recommendation structure."""
     action: str = Field(description="Recommended action (buy/sell/hold)")
     symbol: str = Field(description="Symbol for recommendation")
-    quantity: int = Field(default=0, description="Recommended quantity")
-    price_target: float = Field(default=0.0, description="Price target")
-    stop_loss: float = Field(default=0.0, description="Stop loss level")
+    quantity: Optional[int] = Field(default=None, description="Recommended quantity")
+    price_target: Optional[float] = Field(default=None, description="Price target")
+    stop_loss: Optional[float] = Field(default=None, description="Stop loss level")
     confidence: float = Field(description="Recommendation confidence")
-    reasoning: str = Field(default="", description="Reasoning for recommendation")
-    risk_level: str = Field(default="medium", description="Risk level")
-    timeframe: str = Field(default="intraday", description="Recommendation timeframe")
-    custom_attributes: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom recommendation attributes")
+    reasoning: Optional[str] = Field(default=None, description="Reasoning for recommendation")
+    risk_level: Optional[str] = Field(default=None, description="Risk level")
+    timeframe: Optional[str] = Field(default=None, description="Recommendation timeframe")
+    custom_attributes: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom recommendation attributes")
+    model_config = ConfigDict(extra='forbid')
 
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
-
-    class Config:
-        extra = 'forbid'
-
-class PerformanceByCondition(BaseModel):
+class PerformanceByCondition(BaseModel): # Duplicated from hui_hui_config_schemas.py
     """Performance metrics by market condition."""
-    success_rate: float = Field(default=0.0, description="Success rate for this condition")
-    avg_processing_time: float = Field(default=0.0, description="Average processing time")
+    success_rate: Optional[float] = Field(default=None, description="Success rate for this condition")
+    avg_processing_time: Optional[float] = Field(default=None, description="Average processing time")
     total_requests: int = Field(default=0, description="Total requests in this condition")
-    avg_confidence: float = Field(default=0.0, description="Average confidence score")
-    error_rate: float = Field(default=0.0, description="Error rate for this condition")
-    custom_metrics: Dict[str, float] = Field(default_factory=dict, description="Custom performance metrics")
-
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
-
-    class Config:
-        extra = 'forbid'
+    avg_confidence: Optional[float] = Field(default=None, description="Average confidence score")
+    error_rate: Optional[float] = Field(default=None, description="Error rate for this condition")
+    custom_metrics: Optional[Dict[str, float]] = Field(default=None, description="Custom performance metrics")
+    model_config = ConfigDict(extra='forbid')
 
 class HuiHuiSystemConfig(BaseModel):
     """Configuration for the HuiHui AI system."""
     enabled: bool = Field(True, description="Enable/disable HuiHui AI system.")
-    model_provider: str = Field(default="openai", description="AI model provider for HuiHui.")
-    model_name: str = Field(default="gpt-4", description="AI model name for HuiHui.")
+    model_provider: Optional[str] = Field(default="openai", description="AI model provider for HuiHui.") # Made Optional
+    model_name: Optional[str] = Field(default="gpt-4", description="AI model name for HuiHui.") # Made Optional
     temperature: float = Field(default=0.1, ge=0.0, le=2.0, description="Model temperature for responses.")
     max_tokens: int = Field(default=4000, ge=100, description="Maximum tokens for responses.")
     timeout_seconds: int = Field(default=30, ge=5, description="Timeout for AI requests.")
     retry_attempts: int = Field(default=3, ge=1, description="Number of retry attempts for failed requests.")
     confidence_threshold: float = Field(default=0.7, ge=0.0, le=1.0, description="Minimum confidence threshold for responses.")
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            'enabled': self.enabled,
-            'model_provider': self.model_provider,
-            'model_name': self.model_name,
-            'temperature': self.temperature,
-            'max_tokens': self.max_tokens,
-            'timeout_seconds': self.timeout_seconds,
-            'retry_attempts': self.retry_attempts,
-            'confidence_threshold': self.confidence_threshold
-        }
-
-    class Config:
-        extra = 'forbid'
+    model_config = ConfigDict(extra='forbid')
 
 
 # =============================================================================
@@ -281,18 +194,5 @@ class IntelligenceFrameworkConfig(BaseModel):
     intelligence_update_interval_seconds: int = Field(300, ge=60, description="Interval for intelligence updates.")
     cross_system_learning: bool = Field(True, description="Enable learning across different systems.")
     knowledge_persistence: bool = Field(True, description="Enable persistence of learned knowledge.")
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            'enabled': self.enabled,
-            'learning_system': self.learning_system.to_dict(),
-            'huihui_system': self.huihui_system.to_dict(),
-            'intelligence_update_interval_seconds': self.intelligence_update_interval_seconds,
-            'cross_system_learning': self.cross_system_learning,
-            'knowledge_persistence': self.knowledge_persistence
-        }
-
-    # Additional config fields from config file
-    learning_params: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Learning parameters configuration")
-
-    model_config = ConfigDict(extra='allow')
+    learning_params: Optional[Dict[str, Any]] = Field(default=None, description="Learning parameters configuration")
+    model_config = ConfigDict(extra='forbid')

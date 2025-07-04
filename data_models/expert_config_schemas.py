@@ -40,20 +40,6 @@ class ApiKeyConfig(BaseModel):
     huggingface_key: Optional[str] = Field(None, description="HuggingFace API key")
     custom_keys: CustomApiKeys = Field(default_factory=CustomApiKeys, description="Custom API keys")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        result = {}
-        if self.openai_key:
-            result["openai"] = self.openai_key
-        if self.anthropic_key:
-            result["anthropic"] = self.anthropic_key
-        if self.azure_key:
-            result["azure"] = self.azure_key
-        if self.huggingface_key:
-            result["huggingface"] = self.huggingface_key
-        result.update(self.custom_keys.to_dict())
-        return result
-
 
 class ModelConfig(BaseModel):
     """Configuration for LLM models."""
@@ -64,21 +50,8 @@ class ModelConfig(BaseModel):
     top_p: float = Field(1.0, ge=0.0, le=1.0, description="Top-p sampling parameter")
     frequency_penalty: float = Field(0.0, ge=-2.0, le=2.0, description="Frequency penalty")
     presence_penalty: float = Field(0.0, ge=-2.0, le=2.0, description="Presence penalty")
-    custom_models: Dict[str, CustomModelConfig] = Field(default_factory=dict, description="Custom model configurations")
+    custom_models: Optional[Dict[str, CustomModelConfig]] = Field(default=None, description="Custom model configurations")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        return {
-            "default": self.default_model,
-            "fallback": self.fallback_model,
-            "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
-            "top_p": self.top_p,
-            "frequency_penalty": self.frequency_penalty,
-            "presence_penalty": self.presence_penalty,
-            "custom": {k: v.to_dict() for k, v in self.custom_models.items()}
-        }
-
 
 class ApiEndpointConfig(BaseModel):
     """Configuration for API endpoints."""
@@ -89,17 +62,6 @@ class ApiEndpointConfig(BaseModel):
     retry_attempts: int = Field(3, ge=0, description="Number of retry attempts")
     custom_endpoints: CustomEndpoints = Field(default_factory=CustomEndpoints, description="Custom endpoint configurations")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        return {
-            "base_url": self.base_url,
-            "chat": self.chat_endpoint,
-            "embeddings": self.embeddings_endpoint,
-            "timeout": self.timeout,
-            "retries": self.retry_attempts,
-            "custom": self.custom_endpoints.to_dict()
-        }
-
 
 class RateLimitConfig(BaseModel):
     """Configuration for API rate limits."""
@@ -110,17 +72,6 @@ class RateLimitConfig(BaseModel):
     max_backoff: int = Field(60, gt=0, description="Maximum backoff time in seconds")
     custom_limits: CustomRateLimits = Field(default_factory=CustomRateLimits, description="Custom rate limits")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        return {
-            "rpm": self.requests_per_minute,
-            "tpm": self.tokens_per_minute,
-            "concurrent": self.concurrent_requests,
-            "backoff_factor": self.backoff_factor,
-            "max_backoff": self.max_backoff,
-            "custom": self.custom_limits.to_dict()
-        }
-
 
 class SecurityConfig(BaseModel):
     """Configuration for security settings."""
@@ -132,18 +83,6 @@ class SecurityConfig(BaseModel):
     blocked_domains: List[str] = Field(default_factory=list, description="Blocked domains")
     custom_security: CustomSecuritySettings = Field(default_factory=CustomSecuritySettings, description="Custom security settings")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        return {
-            "level": self.level.value,
-            "encrypt_keys": self.encrypt_keys,
-            "ssl": self.use_ssl,
-            "verify_certs": self.verify_certificates,
-            "allowed_domains": self.allowed_domains,
-            "blocked_domains": self.blocked_domains,
-            "custom": self.custom_security.to_dict()
-        }
-
 
 class PerformanceConfig(BaseModel):
     """Configuration for performance settings."""
@@ -155,18 +94,6 @@ class PerformanceConfig(BaseModel):
     memory_limit_mb: int = Field(1024, gt=0, description="Memory limit in MB")
     custom_performance: CustomPerformanceSettings = Field(default_factory=CustomPerformanceSettings, description="Custom performance settings")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        return {
-            "cache_enabled": self.cache_enabled,
-            "cache_ttl": self.cache_ttl,
-            "batch_size": self.batch_size,
-            "parallel": self.parallel_processing,
-            "max_workers": self.max_workers,
-            "memory_limit": self.memory_limit_mb,
-            "custom": self.custom_performance.to_dict()
-        }
-
 
 class IntegrationConfig(BaseModel):
     """Configuration for system integrations."""
@@ -177,17 +104,6 @@ class IntegrationConfig(BaseModel):
     external_apis: List[str] = Field(default_factory=list, description="External APIs to integrate with")
     custom_integrations: CustomIntegrationSettings = Field(default_factory=CustomIntegrationSettings, description="Custom integration settings")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        return {
-            "database": self.database_enabled,
-            "monitoring": self.monitoring_enabled,
-            "logging": self.logging_level,
-            "webhook": self.webhook_url,
-            "external_apis": self.external_apis,
-            "custom": self.custom_integrations.to_dict()
-        }
-
 
 class AgentSettings(BaseModel):
     """Configuration for AI agent settings."""
@@ -198,17 +114,6 @@ class AgentSettings(BaseModel):
     learning_rate: float = Field(0.01, gt=0, description="Learning rate for adaptation")
     custom_agent_settings: CustomAgentSettings = Field(default_factory=CustomAgentSettings, description="Custom agent settings")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        return {
-            "max_iterations": self.max_iterations,
-            "thinking_time": self.thinking_time,
-            "confidence_threshold": self.confidence_threshold,
-            "memory_size": self.memory_size,
-            "learning_rate": self.learning_rate,
-            "custom": self.custom_agent_settings.to_dict()
-        }
-
 
 class LearningSettings(BaseModel):
     """Configuration for learning settings."""
@@ -219,17 +124,6 @@ class LearningSettings(BaseModel):
     update_frequency: int = Field(100, gt=0, description="Update frequency for learning")
     custom_learning_settings: CustomLearningSettings = Field(default_factory=CustomLearningSettings, description="Custom learning settings")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        return {
-            "enabled": self.enabled,
-            "mode": self.learning_mode,
-            "feedback_weight": self.feedback_weight,
-            "exploration_rate": self.exploration_rate,
-            "update_frequency": self.update_frequency,
-            "custom": self.custom_learning_settings.to_dict()
-        }
-
 
 class SafetySettings(BaseModel):
     """Configuration for safety settings."""
@@ -240,17 +134,6 @@ class SafetySettings(BaseModel):
     safety_model: str = Field("default", description="Safety model to use")
     custom_safety_settings: CustomSafetySettings = Field(default_factory=CustomSafetySettings, description="Custom safety settings")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        return {
-            "content_filter": self.content_filter_enabled,
-            "toxicity_threshold": self.toxicity_threshold,
-            "max_length": self.max_response_length,
-            "blocked_topics": self.blocked_topics,
-            "safety_model": self.safety_model,
-            "custom": self.custom_safety_settings.to_dict()
-        }
-
 
 class InsightGenerationSettings(BaseModel):
     """Configuration for insight generation."""
@@ -261,17 +144,6 @@ class InsightGenerationSettings(BaseModel):
     insight_types: List[str] = Field(default_factory=lambda: ["analytical", "predictive", "strategic"], description="Types of insights to generate")
     custom_insight_settings: CustomInsightSettings = Field(default_factory=CustomInsightSettings, description="Custom insight settings")
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        return {
-            "enabled": self.enabled,
-            "depth": self.depth_level,
-            "creativity": self.creativity_factor,
-            "context_window": self.context_window,
-            "types": self.insight_types,
-            "custom": self.custom_insight_settings.to_dict()
-        }
-
 
 class AdaptiveThresholds(BaseModel):
     """Configuration for adaptive thresholds."""
@@ -282,15 +154,3 @@ class AdaptiveThresholds(BaseModel):
     max_threshold: float = Field(0.9, ge=0, le=1, description="Maximum threshold value")
     threshold_types: ThresholdTypes = Field(default_factory=ThresholdTypes, description="Different threshold types")
     custom_threshold_settings: CustomThresholdSettings = Field(default_factory=CustomThresholdSettings, description="Custom threshold settings")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary format for backward compatibility."""
-        return {
-            "enabled": self.enabled,
-            "base": self.base_threshold,
-            "adaptation_rate": self.adaptation_rate,
-            "min": self.min_threshold,
-            "max": self.max_threshold,
-            "types": self.threshold_types.to_dict(),
-            "custom": self.custom_threshold_settings.to_dict()
-        }

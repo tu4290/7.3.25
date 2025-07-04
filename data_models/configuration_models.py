@@ -183,10 +183,7 @@ class RegimeContextWeightMultipliers(BaseModel):
             warnings.warn(f"WARNING: {info.field_name} = {v} is very high - verify this is intentional!")
         return v
     
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
-    
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra='forbid')
 
 class LearningParams(BaseModel):
     """Parameters for learning systems."""
@@ -207,9 +204,6 @@ class AdaptiveTradeIdeaFrameworkSettings(BaseModel):
     intelligent_recommendation_management_rules: IntelligentRecommendationManagementRules = Field(default_factory=IntelligentRecommendationManagementRules, description="Intelligent recommendation management rules")
     learning_params: LearningParams = Field(default_factory=LearningParams, description="Learning parameters")
     
-    def to_dict(self) -> Dict[str, Any]:
-        return self.model_dump()
-    
     # Additional config fields from config file
     enabled: Optional[bool] = Field(True, description="Enable ATIF framework")
     min_conviction_threshold: Optional[float] = Field(2.5, description="Minimum conviction threshold (alternative field name)")
@@ -225,13 +219,9 @@ class TradeParameterOptimizerSettings(BaseModel):
     stop_loss_calculation_rules: StopLossCalculationRules = Field(default_factory=StopLossCalculationRules, description="Stop loss calculation rules")
     profit_target_calculation_rules: ProfitTargetCalculationRules = Field(default_factory=ProfitTargetCalculationRules, description="Profit target calculation rules")
     
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            'contract_selection_filters': self.contract_selection_filters.to_dict(),
-            'entry_price_logic': self.entry_price_logic,
-            'stop_loss_calculation_rules': self.stop_loss_calculation_rules.to_dict(),
-            'profit_target_calculation_rules': self.profit_target_calculation_rules.to_dict()
-        }
+    def to_dict(self) -> Dict[str, Any]: # Keep for now, or use model_dump()
+        # Ensure nested Pydantic models are also converted if this method is kept
+        return self.model_dump()
 
     # Additional config fields from config file
     enabled: Optional[bool] = Field(True, description="Enable trade parameter optimizer")
@@ -378,11 +368,11 @@ class EOTSConfigV2_5(BaseModel):
         description="Time of day definitions - will use reasonable defaults if not provided in config"
     )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]: # Keep for now, or use model_dump()
         """Convert to dictionary for backward compatibility."""
         return self.model_dump()
 
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra='allow', arbitrary_types_allowed=True) # arbitrary_types_allowed for EliteConfig fallback if it's not Pydantic
 
 
 # =============================================================================

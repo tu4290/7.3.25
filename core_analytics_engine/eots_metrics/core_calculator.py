@@ -31,61 +31,9 @@ EPSILON = 1e-9
 T = TypeVar('T')
 
 # Consolidated Pydantic Models for Core Calculator
-class UnderlyingDataInput(BaseModel):
-    """Pydantic model for underlying data input to replace raw Dict usage"""
-    symbol: str = Field(..., description="Underlying symbol")
-    price: float = Field(..., description="Current underlying price")
+# UnderlyingDataInput removed - Unused 2024-07-26
+# FoundationalMetricsOutput removed - Unused 2024-07-26
 
-    # Basic market data
-    day_volume: Optional[float] = Field(None, description="Daily volume")
-    u_volatility: Optional[float] = Field(None, description="Underlying volatility")
-
-    # Greek flows
-    call_gxoi: Optional[float] = Field(None, description="Call gamma x open interest")
-    put_gxoi: Optional[float] = Field(None, description="Put gamma x open interest")
-    net_cust_delta_flow_und: Optional[float] = Field(None, description="Net customer delta flow")
-    net_cust_gamma_flow_und: Optional[float] = Field(None, description="Net customer gamma flow")
-    net_cust_vega_flow_und: Optional[float] = Field(None, description="Net customer vega flow")
-    net_cust_theta_flow_und: Optional[float] = Field(None, description="Net customer theta flow")
-
-    # Flow metrics
-    net_value_flow_5m_und: Optional[float] = Field(None, description="5-minute net value flow")
-    net_vol_flow_5m_und: Optional[float] = Field(None, description="5-minute net volume flow")
-    net_value_flow_15m_und: Optional[float] = Field(None, description="15-minute net value flow")
-    net_vol_flow_15m_und: Optional[float] = Field(None, description="15-minute net volume flow")
-    net_value_flow_30m_und: Optional[float] = Field(None, description="30-minute net value flow")
-    net_vol_flow_30m_und: Optional[float] = Field(None, description="30-minute net volume flow")
-
-    # Additional fields for extensibility
-    additional_data: Dict[str, Any] = Field(default_factory=dict, description="Additional data fields")
-
-    model_config = ConfigDict(extra='allow')  # Allow extra fields for flexibility
-
-class FoundationalMetricsOutput(BaseModel):
-    """Pydantic model for foundational metrics output"""
-    # Input data (preserved)
-    symbol: str = Field(..., description="Underlying symbol")
-    price: float = Field(..., description="Current underlying price")
-
-    # Calculated foundational metrics
-    gib_oi_based_und: Optional[float] = Field(None, description="GIB from open interest")
-    hp_eod_und: Optional[float] = Field(None, description="End-of-day hedging pressure")
-    td_gib_und: Optional[float] = Field(None, description="Traded dealer gamma imbalance")
-
-    # Net customer flows (calculated)
-    net_cust_delta_flow_und: Optional[float] = Field(None, description="Net customer delta flow")
-    net_cust_gamma_flow_und: Optional[float] = Field(None, description="Net customer gamma flow")
-    net_cust_vega_flow_und: Optional[float] = Field(None, description="Net customer vega flow")
-    net_cust_theta_flow_und: Optional[float] = Field(None, description="Net customer theta flow")
-
-    # Validation results
-    validation_passed: bool = Field(True, description="Whether validation passed")
-    validation_errors: List[str] = Field(default_factory=list, description="Validation error messages")
-
-    # Calculation metadata
-    calculation_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="When calculated")
-
-    model_config = ConfigDict(extra='allow')  # Allow extra fields for extensibility
 class MetricCalculationState(BaseModel):
     """Unified state tracking for all metric calculations"""
     current_symbol: Optional[str] = Field(None, description="Current symbol being processed")

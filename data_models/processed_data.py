@@ -36,8 +36,7 @@ class ProcessedContractMetricsV2_5(RawOptionsContractV2_5):
     vvr_0dte_contract: Optional[float] = Field(None, description="Calculated 0DTE Vanna-Vomma Ratio for this contract.")
     # Note: Other per-contract calculated metrics can be added here.
 
-    class Config:
-        extra = 'forbid' # Stricter, as this is processed internal data
+    model_config = ConfigDict(extra='forbid') # Stricter, as this is processed internal data
 
 
 class ProcessedStrikeLevelMetricsV2_5(BaseModel):
@@ -108,8 +107,7 @@ class ProcessedStrikeLevelMetricsV2_5(BaseModel):
     vomma_impact_raw: Optional[float] = Field(None, description="Raw Vomma impact for this strike.")
     charm_impact_raw: Optional[float] = Field(None, description="Raw Charm impact for this strike.")
 
-    class Config:
-        extra = 'forbid' # Stricter, as this is processed internal data
+    model_config = ConfigDict(extra='forbid') # Stricter, as this is processed internal data
 
 
 class ProcessedUnderlyingAggregatesV2_5(RawUnderlyingDataCombinedV2_5):
@@ -199,9 +197,7 @@ class ProcessedUnderlyingAggregatesV2_5(RawUnderlyingDataCombinedV2_5):
     flow_ratios: Optional[List[float]] = Field(None, description="History of flow ratio values for the underlying.")
     flow_ratios_time: Optional[List[str]] = Field(None, description="Timestamps corresponding to flow_ratios.")
 
-    class Config:
-        arbitrary_types_allowed = True # For PandasDataFrame
-        extra = 'forbid' # Stricter internal model
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra='forbid') # For PandasDataFrame & Stricter internal model
 
 
 class ProcessedDataBundleV2_5(BaseModel):
@@ -217,6 +213,4 @@ class ProcessedDataBundleV2_5(BaseModel):
     processing_timestamp: datetime = Field(..., description="Timestamp indicating when the data processing and metric calculation for this bundle were completed.")
     errors: List[str] = Field(default_factory=list, description="List to store any errors encountered during processing or metric calculation.")
 
-    class Config:
-        extra = 'forbid'
-        arbitrary_types_allowed = True # Due to ProcessedUnderlyingAggregatesV2_5 containing PandasDataFrame
+    model_config = ConfigDict(extra='forbid', arbitrary_types_allowed=True) # Due to ProcessedUnderlyingAggregatesV2_5 containing PandasDataFrame

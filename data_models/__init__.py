@@ -21,36 +21,67 @@ from .ai_ml_models import *
 from .trading_market_models import *
 from .dashboard_ui_models import *
 from .validation_utils import *
+from .impact_analysis_schemas import *
+from .context_schemas import *
+from .learning_schemas import *
 
-# Maintain the original __all__ list for backward compatibility
 __all__ = [
-    # From core_models (base_types, system_schemas, raw_data, processed_data, bundle_schemas, advanced_metrics)
-    "DataFrameSchema", "PandasDataFrame", "SystemStateV2_5", "AISystemHealthV2_5",
+    # From core_models
+    "DataFrameSchema", "PandasDataFrame", "SystemStateV2_5", "AISystemHealthV2_5", "AuditLogEntry",
     "RawOptionsContractV2_5", "RawUnderlyingDataV2_5", "RawUnderlyingDataCombinedV2_5", "UnprocessedDataBundleV2_5",
     "ProcessedContractMetricsV2_5", "ProcessedStrikeLevelMetricsV2_5", "ProcessedUnderlyingAggregatesV2_5", "ProcessedDataBundleV2_5",
-    "FinalAnalysisBundleV2_5", "UnifiedIntelligenceAnalysis", "AdvancedOptionsMetricsV2_5",
+    "FinalAnalysisBundleV2_5", "UnifiedIntelligenceAnalysis", "AdvancedOptionsMetricsV2_5", "NormalizationParams",
 
-    # From configuration_models (all config schemas)
+    # From configuration_models
     "EOTSConfigV2_5", "AnalyticsEngineConfigV2_5", "AdaptiveLearningConfigV2_5", "MarketRegimeEngineSettings", "IntradayCollectorSettings",
+    "TickerContextAnalyzerSettings",
 
-    # From core_system_config (dashboard and visualization models)
+    # From core_system_config
     "DashboardModeSettings", "DashboardModeCollection", "VisualizationSettings",
 
-    # From ai_ml_models
+    # From ai_ml_models (which might re-export some learning_schemas models, set will deduplicate)
     "AIAdaptationV2_5", "AIAdaptationPerformanceV2_5", "AIPredictionV2_5", "AIPredictionPerformanceV2_5", "AIPredictionRequestV2_5",
     "ExpertStatus", "RoutingStrategy", "ConsensusStrategy", "AgreementLevel", "HealthStatus",
     "MOEExpertRegistryV2_5", "MOEGatingNetworkV2_5", "MOEExpertResponseV2_5", "MOEUnifiedResponseV2_5",
     "LearningInsightV2_5", "UnifiedLearningResult", "MarketPattern", "PatternThresholds", "PerformanceInterval", "PerformanceMetricType", "PerformanceMetricV2_5",
-    "SystemPerformanceV2_5", "BacktestPerformanceV2_5", "ExecutionMetricsV2_5", "PerformanceReportV2_5",
+    "SystemPerformanceV2_5", "BacktestPerformanceV2_5", "ExecutionMetricsV2_5", "PerformanceReportV2_5", "PerformanceMetrics",
     "HuiHuiExpertType", "HuiHuiModelConfigV2_5", "HuiHuiExpertConfigV2_5", "HuiHuiAnalysisRequestV2_5",
     "HuiHuiAnalysisResponseV2_5", "HuiHuiUsageRecordV2_5", "HuiHuiPerformanceMetricsV2_5", "HuiHuiEnsembleConfigV2_5", "HuiHuiUserFeedbackV2_5",
     "MarketIntelligencePattern", "MCPIntelligenceResultV2_5", "MCPToolResultV2_5", "AdaptiveLearningResult", "RecursiveIntelligenceResult",
+    "SentimentDataV2_5", "NewsArticleV2_5", "AIPredictionMetricsV2_5", "LearningBatchV2_5", "EnhancedLearningMetricsV2_5",
     
     # From trading_market_models
-    "TickerContextDictV2_5", "MarketRegimeState", "TimeOfDayDefinitions", "SignalPayloadV2_5", "KeyLevelV2_5", "KeyLevelsDataV2_5", "DynamicThresholdsV2_5",
+    "SignalPayloadV2_5", "KeyLevelV2_5", "KeyLevelsDataV2_5",
     "TradeParametersV2_5", "ActiveRecommendationPayloadV2_5", "ATIFSituationalAssessmentProfileV2_5", "ATIFStrategyDirectivePayloadV2_5", "ATIFManagementDirectiveV2_5",
+    "ConsolidatedAnalysisRequest", "SuperiorTradeIntelligence",
     
     # From dashboard_ui_models
     "DashboardModeType", "ChartType", "DashboardModeUIDetail", "ChartLayoutConfigV2_5", "ControlPanelParametersV2_5",
     "DashboardConfigV2_5", "ComponentComplianceV2_5", "DashboardStateV2_5", "DashboardServerConfig",
+
+    # From impact_analysis_schemas
+    "EliteImpactResult",
+
+    # From context_schemas
+    "MarketRegimeState",
+    "TickerContextDictV2_5",
+    "TimeOfDayDefinitions",
+    "DynamicThresholdsV2_5",
+    "TickerProfile",
+    "MarketContext",
+    "CorrelationAnalysis",
+    "VolatilityProfile",
+    "TickerContextAnalysis",
+
+    # From learning_schemas (explicitly adding all, including newly moved ones)
+    "EOTSLearningContext",
+    "EOTSPredictionOutcome",
+    "AILearningPattern",
+    "AILearningInsight",
+    "AIPredictionRecord",
+    "AILearningStats",
+    # (Existing models like LearningInsightV2_5, UnifiedLearningResult etc. from learning_schemas are also included via its star import)
 ]
+
+# Ensure __all__ has unique, sorted entries
+__all__ = sorted(list(set(__all__)))

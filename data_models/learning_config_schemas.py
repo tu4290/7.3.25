@@ -15,12 +15,9 @@ class MarketContextData(BaseModel):
     volume_profile: Optional[str] = Field(None, description="Volume profile analysis")
     sector_rotation: Optional[str] = Field(None, description="Sector rotation pattern")
     economic_indicators: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Economic indicators")
-    technical_indicators: Dict[str, float] = Field(default_factory=dict, description="Technical indicator values")
-    sentiment_metrics: Dict[str, float] = Field(default_factory=dict, description="Market sentiment metrics")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    technical_indicators: Optional[Dict[str, float]] = Field(default=None, description="Technical indicator values")
+    sentiment_metrics: Optional[Dict[str, float]] = Field(default=None, description="Market sentiment metrics")
+    model_config = ConfigDict(extra='forbid')
 
 class AdaptationSuggestion(BaseModel):
     """Suggested adaptation parameters based on learning insights."""
@@ -32,11 +29,8 @@ class AdaptationSuggestion(BaseModel):
     confidence_level: Optional[float] = Field(None, description="Confidence in the suggestion")
     risk_assessment: Optional[str] = Field(None, description="Risk assessment of the change")
     rollback_plan: Optional[str] = Field(None, description="Plan for rolling back if needed")
-    custom_adaptations: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom adaptation parameters")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_adaptations: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom adaptation parameters")
+    model_config = ConfigDict(extra='forbid')
 
 class PerformanceMetricsSnapshot(BaseModel):
     """Performance metrics snapshot for before/after comparisons."""
@@ -52,11 +46,8 @@ class PerformanceMetricsSnapshot(BaseModel):
     volatility_pct: Optional[float] = Field(None, description="Volatility percentage")
     execution_time_ms: Optional[float] = Field(None, description="Average execution time in milliseconds")
     resource_usage_pct: Optional[float] = Field(None, description="Resource usage percentage")
-    custom_metrics: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom performance metrics")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_metrics: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom performance metrics")
+    model_config = ConfigDict(extra='forbid')
 
 class LearningInsightData(BaseModel):
     """Summarized learning insights from analysis."""
@@ -64,16 +55,13 @@ class LearningInsightData(BaseModel):
     key_findings: List[str] = Field(default_factory=list, description="Key findings from analysis")
     pattern_discoveries: List[str] = Field(default_factory=list, description="New patterns discovered")
     anomaly_detections: List[str] = Field(default_factory=list, description="Anomalies detected")
-    correlation_insights: Dict[str, float] = Field(default_factory=dict, description="Correlation insights")
-    trend_analysis: Dict[str, str] = Field(default_factory=dict, description="Trend analysis results")
+    correlation_insights: Optional[Dict[str, float]] = Field(default=None, description="Correlation insights")
+    trend_analysis: Optional[Dict[str, str]] = Field(default=None, description="Trend analysis results")
     predictive_signals: List[str] = Field(default_factory=list, description="Predictive signals identified")
-    confidence_evolution: Dict[str, float] = Field(default_factory=dict, description="Evolution of confidence scores")
+    confidence_evolution: Optional[Dict[str, float]] = Field(default=None, description="Evolution of confidence scores")
     learning_velocity: Optional[float] = Field(None, description="Rate of learning improvement")
-    custom_insights: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom insight data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_insights: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom insight data")
+    model_config = ConfigDict(extra='forbid')
 
 class ExpertAdaptationSummary(BaseModel):
     """Summary of adaptations made by expert systems."""
@@ -85,11 +73,8 @@ class ExpertAdaptationSummary(BaseModel):
     rollback_available: Optional[bool] = Field(None, description="Whether rollback is available")
     validation_status: Optional[str] = Field(None, description="Validation status of adaptation")
     expert_confidence: Optional[float] = Field(None, description="Expert's confidence in adaptation")
-    custom_adaptations: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom adaptation data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_adaptations: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom adaptation data")
+    model_config = ConfigDict(extra='forbid')
 
 class ConfidenceUpdateData(BaseModel):
     """Updates on confidence scores over time."""
@@ -98,14 +83,11 @@ class ConfidenceUpdateData(BaseModel):
     current_score: Optional[float] = Field(None, description="Current confidence score")
     score_change: Optional[float] = Field(None, description="Change in confidence score")
     update_reason: Optional[str] = Field(None, description="Reason for confidence update")
-    validation_data: Dict[str, float] = Field(default_factory=dict, description="Validation data supporting the update")
+    validation_data: Optional[Dict[str, float]] = Field(default=None, description="Validation data supporting the update")
     trend_direction: Optional[str] = Field(None, description="Trend direction of confidence")
     stability_score: Optional[float] = Field(None, description="Stability of confidence score")
-    custom_confidence_data: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom confidence data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_confidence_data: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom confidence data")
+    model_config = ConfigDict(extra='forbid')
 
 class OptimizationRecommendation(BaseModel):
     """Specific recommendations for further optimization."""
@@ -119,11 +101,8 @@ class OptimizationRecommendation(BaseModel):
     dependencies: List[str] = Field(default_factory=list, description="Dependencies for implementation")
     success_metrics: List[str] = Field(default_factory=list, description="Metrics to measure success")
     timeline_estimate: Optional[str] = Field(None, description="Estimated timeline for implementation")
-    custom_recommendation_data: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom recommendation data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_recommendation_data: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom recommendation data")
+    model_config = ConfigDict(extra='forbid')
 
 class LearningMetadata(BaseModel):
     """Additional metadata about the learning process."""
@@ -134,13 +113,10 @@ class LearningMetadata(BaseModel):
     feature_count: Optional[int] = Field(None, description="Number of features used")
     sample_size: Optional[int] = Field(None, description="Sample size for training")
     validation_method: Optional[str] = Field(None, description="Validation method used")
-    hyperparameters: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Hyperparameters used")
-    performance_benchmarks: Dict[str, float] = Field(default_factory=dict, description="Performance benchmarks")
-    custom_metadata: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom learning metadata")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    hyperparameters: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Hyperparameters used")
+    performance_benchmarks: Optional[Dict[str, float]] = Field(default=None, description="Performance benchmarks")
+    custom_metadata: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom learning metadata")
+    model_config = ConfigDict(extra='forbid')
 
 class IntelligenceLayerData(BaseModel):
     """Data for intelligence analysis layers."""
@@ -151,13 +127,10 @@ class IntelligenceLayerData(BaseModel):
     confidence_score: Optional[float] = Field(None, description="Layer confidence score")
     insights_generated: List[str] = Field(default_factory=list, description="Insights generated by this layer")
     data_quality_score: Optional[float] = Field(None, description="Quality score of input data")
-    convergence_metrics: Dict[str, float] = Field(default_factory=dict, description="Convergence metrics")
+    convergence_metrics: Optional[Dict[str, float]] = Field(default=None, description="Convergence metrics")
     layer_dependencies: List[str] = Field(default_factory=list, description="Dependencies on other layers")
-    custom_layer_data: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom layer data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_layer_data: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom layer data")
+    model_config = ConfigDict(extra='forbid')
 
 class MetaLearningData(BaseModel):
     """Meta-learning information for recursive intelligence."""
@@ -166,31 +139,25 @@ class MetaLearningData(BaseModel):
     adaptation_speed: Optional[float] = Field(None, description="Speed of adaptation")
     transfer_learning_score: Optional[float] = Field(None, description="Transfer learning effectiveness")
     generalization_ability: Optional[float] = Field(None, description="Generalization ability score")
-    meta_features: Dict[str, float] = Field(default_factory=dict, description="Meta-features extracted")
+    meta_features: Optional[Dict[str, float]] = Field(default=None, description="Meta-features extracted")
     learning_trajectory: List[float] = Field(default_factory=list, description="Learning trajectory over time")
     convergence_history: List[float] = Field(default_factory=list, description="Convergence history")
     meta_insights: List[str] = Field(default_factory=list, description="Meta-learning insights")
-    custom_meta_data: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom meta-learning data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_meta_data: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom meta-learning data")
+    model_config = ConfigDict(extra='forbid')
 
 class PatternFeatures(BaseModel):
     """Key features of detected patterns."""
     feature_type: Optional[str] = Field(None, description="Type of pattern feature")
     feature_importance: Optional[float] = Field(None, description="Importance score of the feature")
     feature_stability: Optional[float] = Field(None, description="Stability of the feature")
-    temporal_characteristics: Dict[str, float] = Field(default_factory=dict, description="Temporal characteristics")
-    statistical_properties: Dict[str, float] = Field(default_factory=dict, description="Statistical properties")
-    correlation_matrix: Dict[str, float] = Field(default_factory=dict, description="Feature correlations")
-    anomaly_scores: Dict[str, float] = Field(default_factory=dict, description="Anomaly detection scores")
+    temporal_characteristics: Optional[Dict[str, float]] = Field(default=None, description="Temporal characteristics")
+    statistical_properties: Optional[Dict[str, float]] = Field(default=None, description="Statistical properties")
+    correlation_matrix: Optional[Dict[str, float]] = Field(default=None, description="Feature correlations")
+    anomaly_scores: Optional[Dict[str, float]] = Field(default=None, description="Anomaly detection scores")
     feature_evolution: List[float] = Field(default_factory=list, description="Evolution of feature over time")
-    custom_features: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom pattern features")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_features: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom pattern features")
+    model_config = ConfigDict(extra='forbid')
 
 class MarketPrediction(BaseModel):
     """Pattern-based market prediction."""
@@ -198,30 +165,24 @@ class MarketPrediction(BaseModel):
     prediction_horizon: Optional[str] = Field(None, description="Time horizon for prediction")
     predicted_direction: Optional[str] = Field(None, description="Predicted market direction")
     confidence_level: Optional[float] = Field(None, description="Confidence in prediction")
-    probability_estimates: Dict[str, float] = Field(default_factory=dict, description="Probability estimates")
-    risk_assessment: Dict[str, float] = Field(default_factory=dict, description="Risk assessment")
+    probability_estimates: Optional[Dict[str, float]] = Field(default=None, description="Probability estimates")
+    risk_assessment: Optional[Dict[str, float]] = Field(default=None, description="Risk assessment")
     supporting_evidence: List[str] = Field(default_factory=list, description="Supporting evidence for prediction")
     alternative_scenarios: List[str] = Field(default_factory=list, description="Alternative scenarios")
     validation_criteria: List[str] = Field(default_factory=list, description="Criteria for validating prediction")
-    custom_prediction_data: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom prediction data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_prediction_data: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom prediction data")
+    model_config = ConfigDict(extra='forbid')
 
 class PatternMetaAnalysis(BaseModel):
     """Meta-analysis of detected patterns."""
     analysis_method: Optional[str] = Field(None, description="Meta-analysis method used")
     pattern_frequency: Optional[float] = Field(None, description="Frequency of pattern occurrence")
-    seasonal_patterns: Dict[str, float] = Field(default_factory=dict, description="Seasonal pattern analysis")
-    market_regime_dependency: Dict[str, float] = Field(default_factory=dict, description="Dependency on market regimes")
-    cross_asset_correlations: Dict[str, float] = Field(default_factory=dict, description="Cross-asset correlations")
+    seasonal_patterns: Optional[Dict[str, float]] = Field(default=None, description="Seasonal pattern analysis")
+    market_regime_dependency: Optional[Dict[str, float]] = Field(default=None, description="Dependency on market regimes")
+    cross_asset_correlations: Optional[Dict[str, float]] = Field(default=None, description="Cross-asset correlations")
     pattern_evolution: List[float] = Field(default_factory=list, description="Evolution of pattern over time")
-    robustness_metrics: Dict[str, float] = Field(default_factory=dict, description="Pattern robustness metrics")
-    sensitivity_analysis: Dict[str, float] = Field(default_factory=dict, description="Sensitivity analysis results")
+    robustness_metrics: Optional[Dict[str, float]] = Field(default=None, description="Pattern robustness metrics")
+    sensitivity_analysis: Optional[Dict[str, float]] = Field(default=None, description="Sensitivity analysis results")
     meta_insights: List[str] = Field(default_factory=list, description="Meta-analysis insights")
-    custom_meta_analysis: Dict[str, Union[str, int, float, bool]] = Field(default_factory=dict, description="Custom meta-analysis data")
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for backward compatibility."""
-        return self.model_dump()
+    custom_meta_analysis: Optional[Dict[str, Union[str, int, float, bool]]] = Field(default=None, description="Custom meta-analysis data")
+    model_config = ConfigDict(extra='forbid')

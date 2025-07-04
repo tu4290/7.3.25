@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from pydantic import BaseModel, Field
+# pydantic import BaseModel, Field no longer needed here if AIPredictionMetricsV2_5 is the only model moved
 from typing import Optional, List, Dict, Any
 import uuid
 from data_models import (

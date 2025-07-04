@@ -31,7 +31,7 @@ import hashlib
 import numpy as np
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator # BaseModel, Field, validator might still be needed
 from tenacity import retry, stop_after_attempt, wait_exponential
 from circuitbreaker import circuit
 import uuid
@@ -40,6 +40,9 @@ import uuid
 from data_models import UnifiedLearningResult, LearningInsightV2_5
 from data_models import AIAdaptationV2_5, AIAdaptationPerformanceV2_5
 from data_models import AnalyticsEngineConfigV2_5, AdaptiveLearningConfigV2_5
+# Added imports for the moved models:
+from data_models import LearningBatchV2_5, EnhancedLearningMetricsV2_5
+
 from abc import ABC, abstractmethod
 
 logger = logging.getLogger(__name__)
@@ -50,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 class AdaptationStrategy(ABC):
     """Base class for adaptation strategies."""
-    
+
     @abstractmethod
     async def apply(self, adaptation: 'AIAdaptationV2_5') -> bool:
         """Apply the adaptation strategy."""
@@ -58,7 +61,7 @@ class AdaptationStrategy(ABC):
 
 class LearningRateAdjustment(AdaptationStrategy):
     """Adjust learning rate based on insight confidence."""
-    
+
     async def apply(self, adaptation: 'AIAdaptationV2_5') -> bool:
         confidence = adaptation.parameters.get("confidence", 0.5)
         # Adjust learning rate based on confidence (example: 0.001 to 0.002 range)
@@ -71,16 +74,16 @@ class LearningRateAdjustment(AdaptationStrategy):
 
 class ModelUpdateStrategy(AdaptationStrategy):
     """Update model parameters based on insights."""
-    
+
     async def apply(self, adaptation: 'AIAdaptationV2_5') -> bool:
         # Example: Adjust model parameters based on insight
         if "model_parameters" not in adaptation.parameters:
             adaptation.parameters["model_parameters"] = {}
-        
+
         # Add your model update logic here
         # For example:
         # adaptation.parameters["model_parameters"]["some_parameter"] = new_value
-        
+
         logger.debug(f"Updated model parameters: {adaptation.parameters['model_parameters']}")
         return True
 
@@ -89,22 +92,22 @@ class ModelUpdateStrategy(AdaptationStrategy):
 # ====================================
 class AdaptationFactory:
     """Factory for creating adaptation strategies."""
-    
+
     _strategies = {
         "learning_rate": LearningRateAdjustment(),
         "model_update": ModelUpdateStrategy(),
         # Add more strategies as needed
     }
-    
+
     @classmethod
     def get_strategy(cls, insight_type: str) -> Optional[AdaptationStrategy]:
         """Get adaptation strategy based on insight type."""
         return cls._strategies.get(insight_type)
-    
+
     @classmethod
     def register_strategy(cls, name: str, strategy: AdaptationStrategy) -> None:
         """Register a new adaptation strategy.
-        
+
         Args:
             name: Name to register the strategy under
             strategy: Strategy instance to register
@@ -119,11 +122,11 @@ class AdaptationFactory:
 # ====================================
 class AdaptationPerformanceTracker:
     """Track performance of adaptations over time."""
-    
+
     def __init__(self, window_size: int = 100):
         self.window_size = window_size
         self.performance_history: List[Dict[str, Any]] = []
-        
+
     def record_performance(self, adaptation: 'AIAdaptationV2_5', success: bool) -> None:
         """Record the performance of an adaptation."""
         performance = {
@@ -137,35 +140,35 @@ class AdaptationPerformanceTracker:
         # Keep only the most recent entries
         if len(self.performance_history) > self.window_size:
             self.performance_history.pop(0)
-    
+
     def get_success_rate(self, adaptation_type: str = None) -> float:
         """Get the success rate for a specific adaptation type or overall."""
         if not self.performance_history:
             return 0.0
-            
+
         relevant = (
             [p for p in self.performance_history if p["type"] == adaptation_type]
             if adaptation_type else self.performance_history
         )
-        
+
         if not relevant:
             return 0.0
-            
+
         successes = sum(1 for p in relevant if p["success"])
         return successes / len(relevant)
-    
+
     def get_performance_metrics(self) -> Dict[str, Any]:
         """Get comprehensive performance metrics."""
         if not self.performance_history:
             return {"success_rate": 0.0, "total_adaptations": 0}
-            
+
         success_rate = self.get_success_rate()
         adaptations_by_type: Dict[str, int] = {}
-        
+
         # Count adaptations by type
         for record in self.performance_history:
             adaptations_by_type[record["type"]] = adaptations_by_type.get(record["type"], 0) + 1
-        
+
         return {
             "success_rate": success_rate,
             "total_adaptations": len(self.performance_history),
@@ -189,83 +192,26 @@ class DateTimeEncoder(json.JSONEncoder):
             return obj.tolist()
         return super().default(obj)
 
-class LearningBatchV2_5(BaseModel):
-    """Represents a batch of learning data for processing."""
-    batch_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    insights: List[LearningInsightV2_5] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    status: str = "pending"
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-    @validator('insights')
-    def validate_insights(cls, v):
-        if not v:
-            raise ValueError("Batch must contain at least one insight")
-        return v
-
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat(),
-            timedelta: str
-        }
-        extra = 'forbid'
-
-class EnhancedLearningMetricsV2_5(BaseModel):
-    """Extended metrics with additional performance indicators and caching."""
-    total_insights_generated: int = Field(default=0, ge=0)
-    successful_adaptations: int = Field(default=0, ge=0)
-    failed_adaptations: int = Field(default=0, ge=0)
-    average_confidence_score: float = Field(default=0.0, ge=0.0, le=1.0)
-    learning_cycles_completed: int = Field(default=0, ge=0)
-    total_processing_time_ms: float = Field(default=0.0, ge=0.0)
-    learning_rate: float = Field(1e-3, ge=0.0)
-    batch_processing_times: List[float] = Field(default_factory=list)
-    model_versions: Dict[str, str] = Field(default_factory=dict)
-    cache_hits: int = 0
-    cache_misses: int = 0
-    last_updated: datetime = Field(default_factory=datetime.utcnow)
-
-    @property
-    def cache_hit_ratio(self) -> float:
-        """Calculate the cache hit ratio."""
-        total = self.cache_hits + self.cache_misses
-        return self.cache_hits / total if total > 0 else 0.0
-
-    def update_confidence(self, new_score: float) -> None:
-        """Update the running average confidence score."""
-        if self.total_insights_generated == 0:
-            self.average_confidence_score = new_score
-        else:
-            self.average_confidence_score = (
-                (self.average_confidence_score * self.total_insights_generated) + new_score
-            ) / (self.total_insights_generated + 1)
-        self.last_updated = datetime.utcnow()
-
-    class Config:
-        extra = 'forbid'
-        json_encoders = {
-            datetime: lambda v: v.isoformat(),
-            np.ndarray: lambda v: v.tolist()
-        }
+# LearningBatchV2_5 and EnhancedLearningMetricsV2_5 class definitions REMOVED from here.
 
 class AdaptiveLearningIntegrationV2_5:
     """
     Enhanced Adaptive Learning Integration System for EOTS v2.5
-    
+
     This class manages the adaptive learning process with improved performance,
     reliability, and monitoring capabilities.
     """
-    
+
     def __init__(self, config: AdaptiveLearningConfigV2_5):
         """Initialize the enhanced adaptive learning integration system."""
         self.config = config
         self._insight_cache = {}
         self._batch_queue = asyncio.Queue()
         self._shutdown_event = asyncio.Event()
-        
+
         # Initialize analytics engine config
         self._init_analytics_config()
-        
+
         # Initialize metrics and state
         self.metrics = EnhancedLearningMetricsV2_5()
         self.insights: List[LearningInsightV2_5] = []
@@ -273,10 +219,10 @@ class AdaptiveLearningIntegrationV2_5:
         self.performance_history: List[AIAdaptationPerformanceV2_5] = []
         self.performance_tracker = AdaptationPerformanceTracker()
         self.start_time = datetime.utcnow()
-        
+
         # Initialize adaptation strategies
         self._init_adaptation_strategies()
-        
+
         # Start background tasks only if there's a running event loop
         self._batch_processor_task = None
         self._metrics_updater_task = None
@@ -288,14 +234,14 @@ class AdaptiveLearningIntegrationV2_5:
         except RuntimeError:
             # No running event loop, tasks will be created later when needed
             logger.debug("No running event loop found, background tasks will be created later")
-        
+
         self.setup_analytics_engine()
-    
+
     def _init_adaptation_strategies(self) -> None:
         """Initialize default adaptation strategies."""
         # Register any additional strategies here
         pass
-    
+
     def _init_analytics_config(self) -> None:
         """Initialize the analytics configuration with proper validation."""
         if hasattr(self.config, 'analytics_engine'):
@@ -317,7 +263,7 @@ class AdaptiveLearningIntegrationV2_5:
                     self.analytics_config = AnalyticsEngineConfigV2_5()
         else:
             self.analytics_config = AnalyticsEngineConfigV2_5()
-    
+
     async def _batch_processor(self) -> None:
         """Process batches from the queue asynchronously."""
         while not self._shutdown_event.is_set():
@@ -331,7 +277,7 @@ class AdaptiveLearningIntegrationV2_5:
                 continue
             except Exception as e:
                 logger.error("Error processing batch: %s", str(e), exc_info=True)
-    
+
     async def _process_batch(self, batch: LearningBatchV2_5) -> None:
         """Process a single batch of insights."""
         start_time = time.time()
@@ -341,12 +287,12 @@ class AdaptiveLearningIntegrationV2_5:
                 *(self._process_insight(insight) for insight in batch.insights),
                 return_exceptions=True
             )
-            
+
             # Update metrics
             processing_time = (time.time() - start_time) * 1000
             self.metrics.batch_processing_times.append(processing_time)
             self.metrics.learning_cycles_completed += 1
-            
+
             # Handle results
             success_count = sum(1 for r in results if r is True)
             if success_count < len(results):
@@ -354,30 +300,30 @@ class AdaptiveLearningIntegrationV2_5:
                     "Batch %s completed with %d/%d successes",
                     batch.batch_id, success_count, len(results)
                 )
-            
+
             batch.status = "completed"
             batch.metadata.update({
                 "processing_time_ms": processing_time,
                 "success_count": success_count,
                 "total_insights": len(results)
             })
-            
+
         except Exception as e:
             batch.status = "failed"
             batch.metadata["error"] = str(e)
             logger.error("Failed to process batch %s: %s", batch.batch_id, str(e), exc_info=True)
-    
+
     async def _process_insight(self, insight: LearningInsightV2_5) -> bool:
         """Process a single insight with caching and error handling."""
         cache_key = self._generate_insight_cache_key(insight)
-        
+
         # Check cache first
         if cache_key in self._insight_cache:
             self.metrics.cache_hits += 1
             return True
-            
+
         self.metrics.cache_misses += 1
-        
+
         try:
             # Process the insight (placeholder for actual processing logic)
             processed = await self._process_new_insight(insight)
@@ -387,12 +333,12 @@ class AdaptiveLearningIntegrationV2_5:
         except Exception as e:
             logger.error("Error processing insight: %s", str(e), exc_info=True)
             return False
-    
+
     def _generate_insight_cache_key(self, insight: LearningInsightV2_5) -> str:
         """Generate a cache key for an insight."""
         key_data = f"{insight.insight_type}:{insight.confidence_score}:{insight.timestamp}"
         return hashlib.md5(key_data.encode()).hexdigest()
-    
+
     async def _update_metrics_loop(self) -> None:
         """Periodically update and log metrics."""
         while not self._shutdown_event.is_set():
@@ -405,7 +351,7 @@ class AdaptiveLearningIntegrationV2_5:
                 )
             except Exception as e:
                 logger.error("Error in metrics update loop: %s", str(e), exc_info=True)
-    
+
     async def shutdown(self) -> None:
         """Gracefully shut down the learning system."""
         self._shutdown_event.set()
@@ -414,16 +360,16 @@ class AdaptiveLearningIntegrationV2_5:
             self._metrics_updater_task,
             return_exceptions=True
         )
-    
+
     async def add_insights_batch(self, insights: List[LearningInsightV2_5]) -> str:
         """Add a batch of insights for processing."""
         if not insights:
             raise ValueError("No insights provided in batch")
-            
+
         batch = LearningBatchV2_5(insights=insights)
         await self._batch_queue.put(batch)
         return batch.batch_id
-    
+
     @circuit(failure_threshold=3, recovery_timeout=60)
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     async def _process_new_insight(self, insight: LearningInsightV2_5) -> bool:
@@ -432,19 +378,19 @@ class AdaptiveLearningIntegrationV2_5:
             # Update metrics
             self.metrics.total_insights_generated += 1
             self.metrics.update_confidence(insight.confidence_score)
-            
+
             # Store the insight
             self.insights.append(insight)
-            
+
             # Check if we should adapt based on this insight
-            if (self.config.auto_adaptation and 
+            if (self.config.auto_adaptation and
                 insight.confidence_score >= self.config.confidence_threshold):
                 adaptation = await self._create_adaptation(insight)
                 if adaptation:
                     success = await self._apply_adaptation(adaptation)
                     # Record performance for monitoring
                     self.performance_tracker.record_performance(adaptation, success)
-                    
+
                     if success:
                         self.metrics.successful_adaptations += 1
                         logger.info(f"Successfully applied adaptation {adaptation.adaptation_id} "
@@ -455,13 +401,13 @@ class AdaptiveLearningIntegrationV2_5:
                                     f"for insight {insight.insight_id}")
                     return success
             return True
-            
+
         except Exception as e:
             error_msg = f"Failed to process insight {getattr(insight, 'insight_id', 'unknown')}: {str(e)}"
             logger.error(error_msg, exc_info=True)
             self.metrics.failed_adaptations += 1
             raise RuntimeError(error_msg) from e
-    
+
     async def _create_adaptation(self, insight: LearningInsightV2_5) -> Optional[AIAdaptationV2_5]:
         """Create an adaptation based on the insight."""
         try:
@@ -479,21 +425,21 @@ class AdaptiveLearningIntegrationV2_5:
                 created_at=datetime.utcnow(),
                 status="pending"
             )
-            
+
             # Store the adaptation
             self.adaptations.append(adaptation)
             return adaptation
-            
+
         except Exception as e:
             logger.error("Failed to create adaptation: %s", str(e), exc_info=True)
             return None
-    
+
     async def _apply_adaptation(self, adaptation: AIAdaptationV2_5) -> bool:
         """Apply the adaptation to the system using the appropriate strategy.
-        
+
         Args:
             adaptation: The adaptation to apply
-            
+
         Returns:
             bool: True if adaptation was successfully applied, False otherwise
         """
@@ -501,7 +447,7 @@ class AdaptiveLearningIntegrationV2_5:
             # Update adaptation status
             adaptation.status = "applying"
             adaptation.applied_at = datetime.utcnow()
-            
+
             # Get the appropriate strategy
             strategy = AdaptationFactory.get_strategy(adaptation.adaptation_type)
             if not strategy:
@@ -510,13 +456,13 @@ class AdaptiveLearningIntegrationV2_5:
                 adaptation.status = "failed"
                 adaptation.error = error_msg
                 return False
-            
-            logger.info("Applying adaptation %s using %s strategy", 
+
+            logger.info("Applying adaptation %s using %s strategy",
                        adaptation.adaptation_id, strategy.__class__.__name__)
-            
+
             # Apply the strategy
             success = await strategy.apply(adaptation)
-            
+
             # Update adaptation status based on result
             if success:
                 adaptation.status = "applied"
@@ -528,19 +474,19 @@ class AdaptiveLearningIntegrationV2_5:
                 adaptation.status = "failed"
                 adaptation.error = "Strategy application failed"
                 logger.warning("Strategy application failed for adaptation %s", adaptation.adaptation_id)
-            
+
             return success
-            
+
         except Exception as e:
             error_msg = f"Error applying adaptation {getattr(adaptation, 'adaptation_id', 'unknown')}: {str(e)}"
             logger.error(error_msg, exc_info=True)
             adaptation.status = "failed"
             adaptation.error = str(e)
             return False
-    
+
     async def get_performance_metrics(self) -> Dict[str, Any]:
         """Get current performance metrics including adaptation statistics.
-        
+
         Returns:
             Dict containing comprehensive performance metrics including:
             - System metrics (uptime, cache hit ratio, etc.)
@@ -554,14 +500,14 @@ class AdaptiveLearningIntegrationV2_5:
             "batch_processing_avg_ms": np.mean(self.metrics.batch_processing_times) if self.metrics.batch_processing_times else 0,
             "insights_processed": self.metrics.total_insights_generated,
             "success_rate": (
-                self.metrics.successful_adaptations / 
+                self.metrics.successful_adaptations /
                 max(1, self.metrics.successful_adaptations + self.metrics.failed_adaptations)
             ) if (self.metrics.successful_adaptations + self.metrics.failed_adaptations) > 0 else 0,
             "average_confidence": self.metrics.average_confidence_score,
             "learning_rate": self.metrics.learning_rate,
             "last_updated": self.metrics.last_updated.isoformat()
         }
-        
+
         # Add adaptation performance metrics
         adaptation_metrics = self.performance_tracker.get_performance_metrics()
         metrics.update({
@@ -571,28 +517,28 @@ class AdaptiveLearningIntegrationV2_5:
             "performance_window_size": adaptation_metrics["window_size"],
             "adaptations_in_window": adaptation_metrics["adaptations_in_window"]
         })
-        
+
         return metrics
-    
+
     def health_check(self) -> Dict[str, Any]:
         """Perform a health check of the learning system."""
         now = datetime.utcnow()
         time_since_last_update = (now - self.metrics.last_updated).total_seconds()
-        
+
         status = "healthy"
         issues = []
-        
+
         # Check if system is processing insights
         if time_since_last_update > 300:  # 5 minutes
             status = "degraded"
             issues.append(f"No updates in {time_since_last_update:.0f} seconds")
-            
+
         # Check error rates
         total_adaptations = self.metrics.successful_adaptations + self.metrics.failed_adaptations
         if total_adaptations > 0 and self.metrics.failed_adaptations / total_adaptations > 0.5:
             status = "degraded"
             issues.append("High adaptation failure rate")
-        
+
         return {
             "status": status,
             "uptime_seconds": (now - self.start_time).total_seconds(),
@@ -635,213 +581,189 @@ class AdaptiveLearningIntegrationV2_5:
             # Validate insight confidence against pattern discovery threshold
             if insight.confidence_score < self.config.pattern_discovery_threshold:
                 return False
-                
+
             # Add to insights collection
             self.insights.append(insight)
             self.metrics.total_insights_generated += 1
-            
+
             # Check if adaptation is needed and auto-adaptation is enabled
             if self.config.auto_adaptation and self._should_adapt_from_insight(insight):
                 adaptation = self._create_adaptation_from_insight(insight)
-                return self._apply_adaptation(adaptation)
-                
+                return self._apply_adaptation(adaptation) # This was missing await, but it's not an async function here
+
             return False
-            
+
         except Exception as e:
             insight.errors.append(f"Error processing insight: {str(e)}")
             return False
-            
+
     def _should_adapt_from_insight(self, insight: LearningInsightV2_5) -> bool:
         """Determine if an insight should trigger adaptation."""
         # Check warmup period
         if len(self.insights) < 5:  # Default warmup period
             return False
-            
+
         # Check adaptation frequency
-        recent_adaptations = len([a for a in self.adaptations 
-                                if (datetime.now() - a.created_at).total_seconds() < 3600])
+        recent_adaptations = len([a for a in self.adaptations
+                                if (datetime.utcnow() - a.created_at).total_seconds() < 3600]) # Use utcnow
         if recent_adaptations >= 3:  # Default max adaptations per cycle
             return False
-            
+
         # Evaluate insight priority and complexity
         if insight.integration_priority <= 2 and insight.integration_complexity <= 3:
             return True
-            
+
         return False
-        
+
     def _create_adaptation_from_insight(self, insight: LearningInsightV2_5) -> AIAdaptationV2_5:
         """Create an adaptation based on a learning insight."""
         return AIAdaptationV2_5(
-            id=int(time.time() * 1000),  # Use millisecond timestamp as integer ID
-            adaptation_type=insight.adaptation_type or "parameter_adjustment",
+            # id=int(time.time() * 1000), # id is Optional[int] and autogenerated by DB or should be UUID string
+            adaptation_type=insight.adaptation_type or "parameter_adjustment", # adaptation_type in LearningInsightV2_5 is Optional[str]
             adaptation_name=f"Adaptation from {insight.insight_type}",
             adaptation_description=insight.insight_description,
             confidence_score=insight.confidence_score,
-            market_context=insight.market_context,
+            market_context=insight.market_context.model_dump() if insight.market_context else {}, # Use model_dump
             performance_metrics={
-                "pre_adaptation": insight.performance_metrics_pre,
-                "expected_post": insight.performance_metrics_post
+                "pre_adaptation": insight.performance_metrics_pre.model_dump() if insight.performance_metrics_pre else {}, # Use model_dump
+                "expected_post": insight.performance_metrics_post.model_dump() if insight.performance_metrics_post else {} # Use model_dump
             }
+            # created_at is default_factory
         )
-        
-    def _apply_adaptation(self, adaptation: AIAdaptationV2_5) -> bool:
+
+    def _apply_adaptation(self, adaptation: AIAdaptationV2_5) -> bool: # Not async
         """Apply an adaptation to the system."""
         try:
             # Add to adaptations list
             self.adaptations.append(adaptation)
-            
+
             # Update metrics
             self.metrics.successful_adaptations += 1
             self._update_performance_metrics(adaptation)
-            
+
             return True
-            
+
         except Exception as e:
             self.metrics.failed_adaptations += 1
-            logger.error(f"Error applying adaptation: {str(e)}")  # Use logger instead of error_messages
+            logger.error(f"Error applying adaptation: {str(e)}")
             return False
-            
+
     def _update_performance_metrics(self, adaptation: AIAdaptationV2_5):
         """Update performance metrics after adaptation."""
-        current_time = int(time.time() * 1000)
+        # current_time = int(time.time() * 1000) # AIAdaptationPerformanceV2_5 adaptation_id is int
         performance = AIAdaptationPerformanceV2_5(
-            adaptation_id=current_time,  # Use current timestamp as ID
+            adaptation_id=adaptation.id if adaptation.id else int(time.time() * 1000), # Use adaptation.id if available
             symbol=adaptation.market_context.get('symbol', 'SYSTEM'),
             time_period_days=7,
             total_applications=1,
-            successful_applications=1 if adaptation.adaptation_score >= 0.7 else 0,
+            successful_applications=1 if adaptation.adaptation_score >= 0.7 else 0, # Assuming adaptation_score is set
             success_rate=1.0 if adaptation.adaptation_score >= 0.7 else 0.0,
-            avg_improvement=adaptation.adaptation_score,
+            avg_improvement=adaptation.adaptation_score, # Assuming adaptation_score represents improvement
             adaptation_score=adaptation.adaptation_score,
             performance_trend="STABLE"
+            # last_updated is default_factory
         )
         self.performance_history.append(performance)
-        
+
     def get_learning_summary(self) -> UnifiedLearningResult:
         """Generate a summary of learning progress."""
-        current_time = datetime.now()
-        insights_dict = {
-            f"insight_{i}": insight.model_dump()
-            for i, insight in enumerate(sorted(
+        current_time = datetime.utcnow() # Use utcnow
+        insights_data = LearningInsightData(
+            insights=[insight.insight_description for insight in sorted(
                 self.insights,
                 key=lambda x: x.confidence_score,
                 reverse=True
-            )[:5])
-        }
-        
-        # Format start time as ISO string
-        start_time_iso = self.start_time.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        
+            )[:5]]
+        )
+
         return UnifiedLearningResult(
             symbol="SYSTEM",  # System-wide learning
             analysis_timestamp=current_time,
-            learning_insights=insights_dict,
-            performance_improvements=self._get_performance_improvements(),
-            expert_adaptations=self._get_adaptation_summary(),
-            confidence_updates=self._get_confidence_updates(),
+            learning_insights=insights_data, # Use the created LearningInsightData instance
+            performance_improvements=self._get_performance_improvements_snapshot(),
+            expert_adaptations=self._get_adaptation_summary_model(),
+            confidence_updates=self._get_confidence_updates_model(),
             next_learning_cycle=self._calculate_next_cycle(),
             learning_cycle_type="continuous",
             lookback_period_days=7,
             performance_improvement_score=self._calculate_improvement_score(),
             confidence_score=self.metrics.average_confidence_score,
-            optimization_recommendations=[],
+            optimization_recommendations=[], # Should be List[OptimizationRecommendation]
             eots_schema_compliance=True,
-            learning_metadata={
-                "start_time": start_time_iso,
+            learning_metadata=LearningMetadata(metadata={ # Use LearningMetadata model
+                "start_time": self.start_time.isoformat(),
                 "total_insights": len(self.insights),
                 "total_adaptations": len(self.adaptations)
-            }
+            })
         )
-        
-    def _get_performance_improvements(self) -> Dict[str, Any]:
+
+    def _get_performance_improvements_snapshot(self) -> PerformanceMetricsSnapshot:
         """Calculate performance improvements from adaptations."""
-        improvements = {}
-        for adaptation in self.adaptations:
-            for metric, value in adaptation.performance_metrics.items():
-                if metric not in improvements:
-                    improvements[metric] = []
-                improvements[metric].append(value)
-        return improvements
-        
-    def _get_adaptation_summary(self) -> Dict[str, Any]:
-        """Summarize adaptations by type."""
-        summary = {}
-        for adaptation in self.adaptations:
-            if adaptation.adaptation_type not in summary:
-                summary[adaptation.adaptation_type] = {
-                    "count": 0,
-                    "avg_confidence": 0.0,
-                    "success_rate": 0.0
-                }
-            summary[adaptation.adaptation_type]["count"] += 1
-            summary[adaptation.adaptation_type]["avg_confidence"] += adaptation.confidence_score
-        
-        # Calculate averages
-        for adaptation_type in summary:
-            count = summary[adaptation_type]["count"]
-            if count > 0:
-                summary[adaptation_type]["avg_confidence"] /= count
-                
-        return summary
-        
-    def _get_confidence_updates(self) -> Dict[str, Any]:
-        """Get confidence score updates over time."""
-        return {
-            "current_avg_confidence": self.metrics.average_confidence_score,
-            "confidence_trend": self._calculate_confidence_trend(),
-            "high_confidence_ratio": self._calculate_high_confidence_ratio()
-        }
-        
+        # Simplified: real implementation would compare metrics before/after
+        return PerformanceMetricsSnapshot(accuracy_pct=self.metrics.successful_adaptations / max(1, len(self.adaptations)) * 100 if self.adaptations else 0)
+
+    def _get_adaptation_summary_model(self) -> ExpertAdaptationSummary:
+        """Summarize adaptations by type into Pydantic model."""
+        # Simplified
+        return ExpertAdaptationSummary(adaptations=[a.adaptation_name for a in self.adaptations[:5]])
+
+    def _get_confidence_updates_model(self) -> ConfidenceUpdateData:
+        """Get confidence score updates over time into Pydantic model."""
+         # Simplified
+        return ConfidenceUpdateData(confidence_score=self.metrics.average_confidence_score)
+
     def _calculate_next_cycle(self) -> datetime:
         """Calculate the next learning cycle timestamp."""
-        from datetime import timedelta
-        next_time = datetime.now() + timedelta(hours=1)  # Default to hourly
-        return next_time
-        
+        return datetime.utcnow() + timedelta(hours=1)  # Use utcnow
+
     def _calculate_improvement_score(self) -> float:
         """Calculate overall improvement score."""
         if not self.adaptations:
             return 0.0
-            
-        scores = [a.adaptation_score for a in self.adaptations]
-        return sum(scores) / len(scores)
-        
+
+        scores = [a.adaptation_score for a in self.adaptations if a.adaptation_score is not None]
+        return sum(scores) / len(scores) if scores else 0.0
+
     def _calculate_confidence_trend(self) -> str:
         """Calculate the trend in confidence scores."""
-        if len(self.insights) < 2:
+        if len(self.insights) < 10: # Need more data for a trend
             return "STABLE"
-            
+
         recent_avg = sum(i.confidence_score for i in self.insights[-5:]) / 5
-        overall_avg = self.metrics.average_confidence_score
-        
-        if recent_avg > overall_avg * 1.1:
+        older_avg = sum(i.confidence_score for i in self.insights[-10:-5]) / 5
+
+        if recent_avg > older_avg * 1.05: # 5% improvement
             return "IMPROVING"
-        elif recent_avg < overall_avg * 0.9:
+        elif recent_avg < older_avg * 0.95: # 5% decline
             return "DECLINING"
         return "STABLE"
-        
+
     def _calculate_high_confidence_ratio(self) -> float:
         """Calculate ratio of high confidence insights."""
         if not self.insights:
             return 0.0
-            
-        high_confidence = len([i for i in self.insights 
-                             if i.confidence_score >= 0.8])
-        return high_confidence / len(self.insights)
+
+        high_confidence_insights = [i for i in self.insights if i.confidence_score >= 0.8]
+        return len(high_confidence_insights) / len(self.insights)
 
 
 # API compatibility functions
 def get_adaptive_learning_integration(config_manager, database_manager) -> AdaptiveLearningIntegrationV2_5:
     """Get an instance of the adaptive learning integration system."""
-    config = AdaptiveLearningConfigV2_5()  # Create default config
-    return AdaptiveLearningIntegrationV2_5(config=config)
+    # Simplified config loading for now
+    raw_config = config_manager.get_setting("adaptive_learning_config", {})
+    validated_config = AdaptiveLearningConfigV2_5.model_validate(raw_config if isinstance(raw_config, dict) else {})
+    return AdaptiveLearningIntegrationV2_5(config=validated_config)
 
 async def run_daily_unified_learning(symbol: str, config_manager, database_manager) -> UnifiedLearningResult:
     """Run daily unified learning cycle."""
     integration = get_adaptive_learning_integration(config_manager, database_manager)
+    # This would involve fetching data, processing insights over the day, etc.
+    # For now, just returning the current summary.
     return integration.get_learning_summary()
 
 async def run_weekly_unified_learning(symbol: str, config_manager, database_manager) -> UnifiedLearningResult:
     """Run weekly unified learning cycle."""
     integration = get_adaptive_learning_integration(config_manager, database_manager)
+    # Similar to daily, but with a weekly scope.
     return integration.get_learning_summary()

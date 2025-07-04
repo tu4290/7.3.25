@@ -525,3 +525,112 @@ class ATIFManagementDirectiveV2_5(BaseModel):
     percentage_to_manage: Optional[float] = Field(None, ge=0, le=1, description="For partial actions (e.g., PARTIAL_PROFIT_TAKE), the percentage of the position to affect (0.0 to 1.0).")
 
     model_config = ConfigDict(extra='forbid')
+
+# Imports that might be needed by the classes below - will be resolved by data_models/__init__.py
+# from .ai_ml_models import AIPredictionV2_5 # Example if it were structured this way
+# Need to ensure datetime.timezone is available
+from datetime import timezone as dt_timezone # Alias to avoid conflict if datetime.timezone is used elsewhere
+
+class ConsolidatedAnalysisRequest(BaseModel):
+    """Unified request model for complete trade intelligence analysis."""
+    ticker: str = Field(..., description="Trading symbol")
+    analysis_type: str = Field(default="comprehensive", description="Analysis depth")
+    include_predictions: bool = Field(default=True, description="Generate AI predictions")
+    include_optimization: bool = Field(default=True, description="Optimize trade parameters")
+    risk_tolerance: str = Field(default="moderate", description="Risk tolerance level")
+    time_horizon: str = Field(default="short_term", description="Trade time horizon")
+    position_size: Optional[float] = Field(None, description="Desired position size")
+
+    model_config = ConfigDict(extra='forbid')
+
+class SuperiorTradeIntelligence(BaseModel):
+    """Superior consolidated trade intelligence result."""
+    ticker: str = Field(..., description="Trading symbol")
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(dt_timezone.utc))
+
+    ai_analysis: Dict[str, Any] = Field(..., description="HuiHui AI expert analysis")
+    # The following will be imported from data_models once __init__ is set up
+    # For now, using Any to avoid direct import error before __init__ is fully set.
+    # Actual type should be List[AIPredictionV2_5]
+    predictions: List[Any] = Field(default_factory=list, description="AI predictions. Type: List[AIPredictionV2_5]")
+
+    strategy_directive: ATIFStrategyDirectivePayloadV2_5 = Field(..., description="Strategy recommendation")
+    optimized_parameters: ActiveRecommendationPayloadV2_5 = Field(..., description="Optimized trade parameters")
+
+    performance_metrics: Dict[str, Any] = Field(default_factory=dict, description="Performance analytics")
+    learning_insights: List[str] = Field(default_factory=list, description="Learning insights")
+
+    overall_confidence: float = Field(..., description="Overall confidence score", ge=0.0, le=1.0)
+    conviction_score: float = Field(..., description="Trade conviction score", ge=0.0, le=5.0)
+
+    metadata: Dict[str, Any] = Field(
+        default_factory=lambda: {
+            'version': '2.5',
+            'generated_at': datetime.now(dt_timezone.utc).isoformat(),
+            'adaptive_framework': True,
+            'system': 'ATIF Engine v2.5'
+        },
+        description="System metadata and generation context"
+    )
+
+    model_config = ConfigDict(
+        extra='forbid',
+        json_encoders={
+            datetime: lambda v: v.isoformat(),
+        }
+    )
+
+# Imports that might be needed by the classes below - will be resolved by data_models/__init__.py
+# from .ai_ml_models import AIPredictionV2_5 # Example if it were structured this way
+
+class ConsolidatedAnalysisRequest(BaseModel):
+    """Unified request model for complete trade intelligence analysis."""
+    ticker: str = Field(..., description="Trading symbol")
+    analysis_type: str = Field(default="comprehensive", description="Analysis depth")
+    include_predictions: bool = Field(default=True, description="Generate AI predictions")
+    include_optimization: bool = Field(default=True, description="Optimize trade parameters")
+    risk_tolerance: str = Field(default="moderate", description="Risk tolerance level")
+    time_horizon: str = Field(default="short_term", description="Trade time horizon")
+    position_size: Optional[float] = Field(None, description="Desired position size")
+
+    model_config = ConfigDict(extra='forbid')
+
+class SuperiorTradeIntelligence(BaseModel):
+    """Superior consolidated trade intelligence result."""
+    ticker: str = Field(..., description="Trading symbol")
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(datetime.timezone.utc)) # Corrected
+
+    # AI Intelligence
+    ai_analysis: Dict[str, Any] = Field(..., description="HuiHui AI expert analysis")
+    # The following will be imported from data_models once __init__ is set up
+    predictions: List[Any] = Field(default_factory=list, description="AI predictions. Type: List[AIPredictionV2_5]")
+
+    # Strategy Intelligence
+    strategy_directive: ATIFStrategyDirectivePayloadV2_5 = Field(..., description="Strategy recommendation")
+    optimized_parameters: ActiveRecommendationPayloadV2_5 = Field(..., description="Optimized trade parameters")
+
+    # Performance Intelligence
+    performance_metrics: Dict[str, Any] = Field(default_factory=dict, description="Performance analytics")
+    learning_insights: List[str] = Field(default_factory=list, description="Learning insights")
+
+    # Confidence Metrics
+    overall_confidence: float = Field(..., description="Overall confidence score", ge=0.0, le=1.0)
+    conviction_score: float = Field(..., description="Trade conviction score", ge=0.0, le=5.0)
+
+    # System Metadata
+    metadata: Dict[str, Any] = Field(
+        default_factory=lambda: {
+            'version': '2.5',
+            'generated_at': datetime.now(datetime.timezone.utc).isoformat(), # Corrected
+            'adaptive_framework': True,
+            'system': 'ATIF Engine v2.5'
+        },
+        description="System metadata and generation context"
+    )
+
+    model_config = ConfigDict(
+        extra='forbid',
+        json_encoders={
+            datetime: lambda v: v.isoformat(),
+        }
+    )
